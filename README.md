@@ -1,4 +1,4 @@
-fp-chrome-app
-=============
+fp-chrome-app-oerp
+==================
 
-Fiscal Printer Chrome Application
+Fiscal Printer Chrome Application for OpenERP
