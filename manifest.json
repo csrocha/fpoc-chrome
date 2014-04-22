@@ -1,0 +1,45 @@
+{
+  "manifest_version": 2,
+
+  "name": "Fiscal Printer Chrome Application",
+  "description": "This app publish local fiscal printers into a local network and let to webpages to interact with them.",
+  "version": "1.0",
+
+  "app": {
+	  "background": {
+		  "scripts": [
+			  "src/async.js",
+			  "src/bundle.js",
+			  "src/oerp.js",
+			  "src/epson.js",
+			  "src/tools.js",
+			  "src/sevents.js",
+			  "src/background.js" ]
+	  }
+  },
+
+  "permissions": [
+	  "cookies",
+	  "*://localhost:*/*"
+  ],
+
+  "externally_connectable": {
+	  "matches": ["*://localhost:*/*"]
+  },
+
+  "permissions": [
+     "storage",
+     "usb",
+     { "usbDevices": [
+	     { "vendorId": 1208, "productId": 514 }
+	     ] },
+     { "socket": [
+	     "tcp-connect",
+	     "tcp-listen",
+	     "udp-send-to",
+	     "udp-bind"
+	     ] }
+  ],
+
+  "icons": { "16": "img/icon-16px.png", "128": "img/icon-128px.png" }
+}

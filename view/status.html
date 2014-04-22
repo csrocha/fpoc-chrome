@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="status.css">
+  </head>
+  <body>
+    <div id="alert"></div>
+    <div id="disconnected">
+	    <h1>Login</h1>
+	    <p>Application is disconnected. Please login.</p>
+	    <div id="form">
+		    <ul>
+			    <li>URL</li>
+			    <li><select name="server"/>
+				    <option value="">Select a server</option>
+				    <option value="http://localhost:8069">Local host</option>
+				    <option value="https://test.mierp.net">Test in mierp.net</option>
+				</select></li>
+			    <li>Database</li>
+			    <li><select name="database"/></select></li>
+			    <li>User</li>
+			    <li><input type="text" name="login"/></li>
+			    <li>Password</li>
+			    <li><input type="text" name="password"/></li>
+			    <li><button name="login">Login</button></li>
+		    </ul>
+	    </div>
+    </div>
+    <div id="connected">
+	    <h1>Connected</h1>
+	    <p>You are logged in as <b id="login"/> on <a target="_blank" id="server">server</a>.</p>
+	    <button>Logout</button>
+    </div>
+    <div id="printers">
+	    <h1>Local Printers</h1>
+	    <table>
+		    <tr> <th>Printer</th> </tr>
+	    </table>
+    </div>
+    <div>
+	    <h1>Logging</h1>
+        <div id="logger">
+        </div>
+    </div>
+  </body>
+  <script src="../src/oerp.js"></script>
+  <script src="status.js"></script>
+</html>
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+    -->
