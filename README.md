@@ -6,15 +6,16 @@ Fiscal Printer Chrome Application for OpenERP
 List of Supported Printers
 ==========================
 
-Argentina
-=========
+## Argentina
 
-Valores de la columna ~Estados~:
+### Valores de la columna _Estado_
 
 - Dev: En desarrollo.
 - NoTest: Podría funcionar, pero no está testeado.
 - Test: En testing.
 - Prod: En producción.
+
+### Listado de impresoras.
 
 |CUIT Empresa|Denominación Proveedor|Marca|Modelo|R.G.|Fecha|Cod.|Tipo|Estado|
 |------------|----------------------|-----|------|----|-----|----|----|---------|
