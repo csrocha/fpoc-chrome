@@ -9,7 +9,14 @@ List of Supported Printers
 Argentina
 =========
 
-|CUIT Empresa|Denominación Proveedor|Marca|Modelo|R.G.|Fecha|Cod.|Tipo|SOPORTADO|
+Valores de la columna ~Estados~:
+
+- Dev: En desarrollo.
+- NoTest: Podría funcionar, pero no está testeado.
+- Test: En testing.
+- Prod: En producción.
+
+|CUIT Empresa|Denominación Proveedor|Marca|Modelo|R.G.|Fecha|Cod.|Tipo|Estado|
 |------------|----------------------|-----|------|----|-----|----|----|---------|
 |30615773383|ANDRES MORETTI E HIJOS S.A.|MORETTI|OPALE|AFIP 87|16/02/98|MMA|1||
 |30615773383|ANDRES MORETTI E HIJOS S.A.|MORETTI|OPALE  I|AFIP 250|03/11/98|MMB|1||
@@ -94,7 +101,7 @@ Argentina
 |30614104712|EPSON ARGENTINA S.A.|EPSON|TM T88 IV LC|AFIP 2378|20/12/07|PEM|3||
 |30614104712|EPSON ARGENTINA SRL.|EPSON|TM T88 IV C|AFIP 2452|14/05/08|PEN|3||
 |30614104712|EPSON ARGENTINA SRL.|EPSON |TM - U950F Gaia|AFIP 2604|05/05/09|PEE|2||
-|30614104712|EPSON ARGENTINA SRL.|EPSON|TM U220 AF II (v.22.00) Hera|AFIP 2767|17/02/10|PEO|2|DEVEL|
+|30614104712|EPSON ARGENTINA SRL.|EPSON|TM U220 AF II (v.22.00) Hera|AFIP 2767|17/02/10|PEO|2|Dev|
 |30614104712|EPSON ARGENTINA SRL.|EPSON|TM-T260 F (v.23.00) Chronos|AFIP 3031|09/02/11|PEP|2||
 |30614104712|EPSON ARGENTINA SRL.|EPSON|LX 300F+ II (v.11.00) Dionisos|AFIP 3082|13/04/11|PEQ|2||
 |30614104712|EPSON ARGENTINA SRL.|EPSON|TM-U220 AF II (v.22.01) Demeter|AFIP 3326|15/05/12|PEO|2||
