@@ -212,6 +212,7 @@ oerpSession = function(sid, server, session_id) {
             if (mess != "done") {
                 console.warn("Session is not open. Reason: ", mess);
             } else {
+                debugger;
                 console.warn("Session is open.");
             }
         };
@@ -222,6 +223,51 @@ oerpSession = function(sid, server, session_id) {
             _callback("notlogin", this);
         };
     };
+
+    // 
+    // Publish printer information
+    //
+    this.publish = function(callback) {
+        var self = this;
+
+        // Take printers
+        var push_printers = function(keys, printers) {
+            if (keys.length) {
+                debugger;
+            };
+        };
+        var publish_printers = function(printers) {
+            var keys = takeKeys(printers);
+            push_printers(keys, printers);
+        }
+        console.log("Query local printers.");
+        query_local_printers( publish_printers );
+
+
+        // Search
+        var _callback = function(r, d) {
+            debugger;
+        };
+        args = [ [['session_id','=',self.session_id]] ];
+        args = [ [] ]
+        kwargs = { };
+        this.rpc("/web/dataset/call_kw", {
+            model: 'fiscal_printer.fiscal_printer',
+            method: 'search',
+            args: args,
+            kwargs: kwargs
+        }, _callback);
+
+        // Write
+        args = [ [id], data ];
+        kwargs = { };
+        this.rpc("/web/dataset/call_kw", {
+            model: 'fiscal_printer',
+            method: 'write',
+            args: args,
+            kwargs: kwargs
+        });
+    }
 };
 
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
