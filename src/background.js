@@ -4,7 +4,7 @@
 
 var session = null;
 
-function open_status() {
+function open_status(sess) {
     if (chrome.app.window.get('status') == null) {
         chrome.app.window.create('view/status.html', {
             'id': 'status',
@@ -13,13 +13,20 @@ function open_status() {
               'height': 500
             }
         }, function(sWindow) {
-          sWindow.contentWindow.session = session;
+          sWindow.contentWindow.session = sess;
         });
     };
 };
 
 function login(callback) {
     console.log("Start background login.");
+
+    // Not login if exists session_id.
+    if (session && session.session_id) {
+        return
+    };
+    
+    // Login.
     chrome.storage.local.get(['sid', 'server', 'session_id'], function(value) {
         session = new oerpSession(value.sid, value.server, value.session_id);
         session.onlogin = function(s) {
@@ -27,7 +34,9 @@ function login(callback) {
                 sid: session.sid,
                 server: session.server,
                 session_id: session.session_id, });
-            s.init_server_events(server_events);
+            s.init_server_events(control_server_events, function() {
+                s.update();
+            });
         };
         session.onlogout = function(s) {
             chrome.storage.local.set({
@@ -37,15 +46,19 @@ function login(callback) {
         };
         session.onlogerror = function(s) {
             chrome.storage.local.set({'sid': null});
-            open_status();
+            open_status(session);
         };
         session.onerror = function(s) {
-            if (s.receptor) s.receptor.close();
+            for (i in session.receptor) session.receptor[i].close();
             chrome.storage.local.set({'sid': null});
-            open_status();
+            open_status(session);
         };
-        session.init();
-        callback();
+        session.onexpired = function(s) {
+            for (i in session.receptor) session.receptor[i].close();
+            chrome.storage.local.set({'sid': null});
+            open_status(session);
+        };
+        session.init(callback);
     });
 };
 
@@ -54,7 +67,7 @@ login(function(){
     // Set status windows when application is launched.
     chrome.app.runtime.onLaunched.addListener(function() {
         console.log("Launch status");
-        open_status();
+        open_status(session);
     });
 });
 

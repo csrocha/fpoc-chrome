@@ -28,25 +28,27 @@ var query_local_printers = function(callback) {
                     case 'epson':
                         epson_open(item,
                             function(printer) {
-                                console.log("epson_open", printer);
                                 printer.get_status(function(result){
-                                    console.log("get_status", result);
                                     printer.get_id(function(result){
                                         if (result) {
-                                            console.log("get_id", result);
                                             var key = printer.protocol + '://' +
                                                 result.model + ":" +
                                                 result.serialNumber;
                                             if (key in local_printers) {
-                                                printer.close();
+                                                printer.close(__callback);
+                                                return;
                                             } else {
                                                 console.log("New printer " + key);
+                                                printer.name = key;
                                                 local_printers[key] = printer;
+                                                __callback();
+                                                return
                                             }
                                         } else {
                                             console.warn("Device yet taken");
                                         }
-                                        __callback(local_printers);
+                                        __callback();
+                                        return;
                                     });
                                 });
                             });
@@ -55,8 +57,8 @@ var query_local_printers = function(callback) {
                 _callback);
     };
 
-    if (callback == null) {
-        callback = function() {};
+    var ___callback = function() {
+        if (callback) callback(local_printers);
     };
 
     async.each(supported_printers,
@@ -69,7 +71,7 @@ var query_local_printers = function(callback) {
                                 onDeviceFound(item.protocol, item.vendorId, item.productId, device, _callback);
                             });
                 };
-            }, callback );
+            }, ___callback );
 };
 
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

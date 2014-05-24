@@ -28,13 +28,16 @@
     </div>
     <div id="connected">
 	    <h1>Connected</h1>
-	    <p>You are logged in as <b id="login"/> on <a target="_blank" id="server">server</a>.</p>
+        <p>You are logged as <b id="login"></b> on <a target="_blank" id="server">server</a>.</p>
 	    <button>Logout</button>
     </div>
     <div id="printers">
 	    <h1>Local Printers</h1>
 	    <table>
-		    <tr> <th>Printer</th> </tr>
+		    <tr>
+                <th>Printer</th>
+                <th>Operations</th>
+            </tr>
 	    </table>
     </div>
     <div>
@@ -43,6 +46,9 @@
         </div>
     </div>
   </body>
+  <script src="../src/epson.js"></script>
+  <script src="../src/async.js"></script>
+  <script src="../src/tools.js"></script>
   <script src="../src/oerp.js"></script>
   <script src="status.js"></script>
 </html>

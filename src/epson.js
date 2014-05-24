@@ -215,7 +215,6 @@ function bufUnescape(inbuf) {
 };
 
 function pack() {
-    console.log("pack <");
     var types = arguments[0];
     var fields = arguments;
     var values = [];
@@ -271,12 +270,10 @@ function pack() {
         } else {
             vbuf[k++] = cs.charCodeAt(i-4+cs.length);
         }
-    console.log("pack >");
     return buf;
 };
 
 function unpack() {
-    console.log("unpack <", arguments);
     var types = arguments[0];
     var fields = arguments[1];
     var data = arguments[2];
@@ -311,7 +308,6 @@ function unpack() {
             console.debug('Type ', types[i], ' not implemented');
         }
     }
-    console.log("unpack >");
     return r;
 }
 
@@ -412,7 +408,7 @@ var epson = function(device) {
     this.protocol = 'epson';
 
     this.sendACK = function(callback) {
-        var buf = new Uint8Array([0x06])
+        var buf = new Uint8Array([0x06]);
         chrome.usb.bulkTransfer(device,
             {   'direction': 'out',
                 'endpoint': 0x01,
@@ -423,11 +419,7 @@ var epson = function(device) {
     };
 
     this.waitResponse = function(types, fields, callback) {
-        chrome.usb.bulkTransfer(device,
-            {   'direction': 'in',
-                'endpoint': 0x82,
-                'length': 2048
-            }, function(info) {
+        var local_callback = function(info) {
                 if (info && info.resultCode == 0) {
                     if (info.data.byteLength==0) {
                         self.waitResponse(types, fields, callback);
@@ -445,17 +437,24 @@ var epson = function(device) {
                         self.waitResponse(types, fields, callback);
                     } else
                     if (info.data.byteLength>1) {
-                        console.debug(new Uint8Array(info.data));
                         callback(unpack(types, fields, info.data));
                     };
                 };
-            });
+            };
+        chrome.usb.bulkTransfer(device,
+            {   'direction': 'in',
+                'endpoint': 0x82,
+                'length': 2048
+            }, local_callback);
     };
 
-    this.close = function() {
-        chrome.usb.releaseInterface(device, 1, function() {
-            chrome.usb.closeDevice(device);
+    this.close = function(callback) {
+        var closed = function() {
             console.debug("EPSON: Device closed");
+            callback();
+        };
+        chrome.usb.releaseInterface(device, 1, function() {
+            chrome.usb.closeDevice(device, closed);
         });
     };
 
@@ -480,9 +479,9 @@ var epson = function(device) {
     };
 
     this.command = function(name, in_pack, out_types, out_dict, callback) {
+        var self=this;
         console.debug("EPSON:command:", name);
-        _callback = function(response) {
-            console.log(response);
+        var local_callback = function(response) {
             if (response && response.printerStatus != null) { 
                 extend(response, printerState(response.printerStatus));
                 response.strPrinterStatus = printerStateString(response.printerStatus);
@@ -502,19 +501,18 @@ var epson = function(device) {
                     'endpoint': 0x01,
                     'data': in_pack
                 }, function(info) {
-                    console.debug("EPSON:command:callback:", info);
                     if (info && info.resultCode == 0)
-                        self.waitResponse(out_types, out_dict, _callback);
+                        self.waitResponse(out_types, out_dict, local_callback);
                     else
-                        _callback(null);
+                        local_callback(null);
                 });
             }, function() {
-                _callback(null);
+                local_callback(null);
             });
     };
 
     // 6.1.1 Obtener Estado (00 01)
-    this.get_status = function(callback) {
+    this._get_status = function(callback) {
        self.command(
                 'get_status',
                 pack("<SW_W>*", sequence++, 0x0001, 0x0000),
@@ -568,9 +566,9 @@ var epson = function(device) {
     };
 
     // 6.2.1 Reporte de Diagnóstico e Información del Equipo (02 01)
-    this.print_diag_report = function(station, callback) {
+    this._print_diag_report = function(station, callback) {
         self.command(
-                'print_diag_report',
+                '_print_diag_report',
                 pack("<SW_W>*", sequence++, 0x0201, station),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -578,9 +576,9 @@ var epson = function(device) {
     };
 
     // 6.2.2 Ripple Test (02 04)
-    this.ripple_test = function(station, no_lines, callback) {
+    this._ripple_test = function(station, no_lines, callback) {
         self.command(
-                'ripple_test',
+                '_ripple_test',
                 pack("<SW_W_N>*", sequence++, 0x0204, station, no_lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -603,9 +601,9 @@ var epson = function(device) {
     };
 
     // 6.2.4 Tique Técnico (02 10)
-    this.print_technical_ticket = function(callback) {
+    this._print_technical_ticket = function(callback) {
         self.command(
-                'print_technical_ticket',
+                '_print_technical_ticket',
                 pack("<SW_W>*", sequence++, 0x0210, 0),
                 '<SW_W__W__N_N_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
@@ -615,7 +613,7 @@ var epson = function(device) {
     };
     
     // 6.3.1 Configurar Fecha y Hora (05 01)
-    this.set_datetime = function(date, time, callback) {
+    this._set_datetime = function(date, time, callback) {
         self.command(
                 'set_datetime',
                 pack("<SW_W_D_T>*", sequence++, 0x0501, 0, date, time),
@@ -792,6 +790,95 @@ var epson = function(device) {
                 callback);
     };
 
+    // 6.4.1 Avanzar Papel (07 01)
+    this._advance_paper = function(station, lines, callback) {
+        self.command(
+                'advance_paper',
+                pack("<SW_W_N>*", sequence++, 0x0701, station & 0x0003, lines),
+                '<SW_W__W_>*',
+                ['printerStatus', 'fiscalStatus', 'result'],
+                callback);
+    }
+    
+    // 6.4.2 Cortar Papel (07 02)
+    this._cut_paper = function(callback) {
+        self.command(
+                'cut_paper',
+                pack("<SW_W>*", sequence++, 0x0702, 0x0000),
+                '<SW_W__W_>*',
+                ['printerStatus', 'fiscalStatus', 'result'],
+                callback);
+    }
+
+    // 6.5.1 Reporte Z (08 01)
+    this._z_report = function(showheadfoot, showinfo, callback) {
+        var ext = (showinfo && 0x0800) + (showheadfoot && 0x0400);
+        self.command(
+                'z_report',
+                pack("<SW_W>*", sequence++, 0x0801, 0x0C00),
+                '<SW_W__W__W>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'closeNumber'],
+                callback);
+    }
+    
+    // 6.5.2 Reporte X (08 02)
+    this._x_report = function(showheadfoot, showinfo, print, callback) {
+        var ext = (showinfo && 0x0800) + (showheadfoot && 0x0400) + (print && 0x0001);
+        self.command(
+                'x_report',
+                pack("<SW_W>*", sequence++, 0x0802, ext),
+                '<SW_W__W__W>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'closeNumber'],
+                callback);
+    }
+
+    // 6.5.4 Información Electrónica General de la Jornada Fiscal en Curso (08 0A)
+    this._get_fiscal_information = function(from_last_x, callback) {
+        var ext = (from_last_x && 0x0001);
+        self.command(
+                'get_fiscal_information',
+                pack("<SW_W>*", sequence++, 0x080A, ext),
+                '<SW_W__W__D_T_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_Y>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'date_open_fiscal_journal', // 1
+                 'time_open_fiscal_journal', // 2
+                 'last_z_report',
+                 'last_a_sale_document',
+                 'last_b_sale_document',     // 5
+                 'last_a_credit_document',
+                 'last_b_credit_document',
+                 'last_fiscal_document',
+                 'last_fiscal_homo_document',
+                 'total_sale',               // 10
+                 'total_vat',
+                 'total_fixed_tax',
+                 'total_rated_tax',
+                 'total_perceptions',
+                 'total_credit_document',    // 15
+                 'total_vat_credit_document',
+                 'total_fixed_tax_credit_document',
+                 'total_rated_tax_credit_document',
+                 'total_perceptions_credit_document',
+                 'number_of_df',             // 20
+                 'number_of_dnf',
+                 'number_of_dnfh',
+                 'number_of_a_sale_document',
+                 'number_of_a_sale_document_cancelled',
+                 'number_of_b_sale_document',// 25
+                 'number_of_b_sale_document_cancelled',
+                 'number_of_credit_document',
+                 'number_of_a_credit_document',
+                 'number_of_b_credit_document',
+                 'need_close_journal',       // 30
+                 ],
+                callback);
+    }
+
+    //
+    // Wrapper fields
+    //
     this.read_operation = {
         'date':         function(callback){ self.get_datetime(function(response) { callback(response && response.date); }); },
         'time':         function(callback){ self.get_datetime(function(response) { callback(response && response.time); }); },
@@ -858,8 +945,11 @@ var epson = function(device) {
         'footerLine 7': function(value_, callback){ self.set_footer_lines(7, value_, function(response) { callback(response); }); },
     };
 
+    //
+    // Common API functions
+    //
 
-    // READ FIELD
+    // API: Read printer fields
     this.read_field = function(field, callback) {
         if (field in this.read_operation) {
             this.read_operation[field](callback);
@@ -867,7 +957,8 @@ var epson = function(device) {
             callback('[field not found]');
         };
     };
-    // WRITE FIELD
+
+    // API: Write printer fields
     this.write_field = function(field, value_, callback) {
         if (field in this.write_operation) {
             this.write_operation[field](value_, callback);
@@ -876,7 +967,7 @@ var epson = function(device) {
         };
     };
     
-    // OPERATION
+    // API: OPERATION (?)
     this.read_attributes = function(callback) {
         var self = this;
         var f = [];
@@ -890,7 +981,6 @@ var epson = function(device) {
                 readonly.push(field);
             }
             if (field) {
-                console.log("Reading field: ", field);
                 self.read_operation[field](function(r) {
                     attributes[field] = r;
                     read_fields(ks);
@@ -912,16 +1002,78 @@ var epson = function(device) {
         read_fields(f);
     };
 
-    this.do_test = function(callback) {
+    // Status
+    this.get_status = function(callback) {
         var self = this;
-        self.print_diag_report(0, function() {
-            self.ripple_test(0, 10, function() {
-                self.print_technical_ticket(function() {
+        self._get_status(function(res) {
+            callback(res);
+        });
+    };
+
+    // Tests
+
+    // API: Execute short test
+    this.short_test = function(callback) {
+        var self = this;
+        self._ripple_test(0, 10, function() {
+            callback();
+        });
+    };
+
+    // API: Execute large test
+    this.large_test = function(callback) {
+        var self = this;
+        self._print_diag_report(0, function() {
+            self._ripple_test(0, 10, function() {
+                self._print_technical_ticket(function() {
                     callback();
                 });
             });
         });
     };
+
+    // Paper Control
+
+    // API: Advance paper
+    this.advance_paper = function(lines, callback) {
+        var self = this;
+        self._advance_paper(0,1,callback);
+    }
+    
+    // API: Cut paper
+    this.cut_paper = function(callback) {
+        var self = this;
+        self._cut_paper(callback);
+    }
+
+    // API: Cancel printer
+    
+    // Document information
+
+    // Fiscal Journal
+    
+    // API: Open Fiscal Journal
+    this.open_fiscal_journal = function(callback) {
+        var self = this;
+        var d = new Date();
+        var date = [ pad(d.getDate(), 2), pad(d.getMonth()+1, 2), pad(d.getFullYear().toString().substr(2,2), 2) ].join('')
+        var time =  [ pad(d.getHours(), 2), pad(d.getMinutes(), 2), pad(d.getSeconds(), 2) ].join('')
+        self._set_datetime(date, time, callback);
+    }
+
+    // API: Close Fiscal Journal (Z Report)
+    this.close_fiscal_journal = function(callback) {
+        var self = this;
+        self._z_report(1,1,callback);
+    }
+
+    // API: Shift Change (X Report)
+    this.shift_change = function(callback) {
+        var self = this;
+        self._x_report(1,1,1,callback);
+    }
+
+    // API: Generate ticket.
 };
 
 function epson_open(device, callback) {
