@@ -62,6 +62,14 @@ function login(callback) {
     });
 };
 
+// Function searching for new printers or remove then if disconnected.
+(function poolingPrinter() {
+    setTimeout(function(){ if (session) {
+        console.log("Pooling for printers");
+        session.update(poolingPrinter());
+    }; }, 3000);
+})();
+
 // Start login.
 login(function(){
     // Set status windows when application is launched.

@@ -401,15 +401,15 @@ var printerStateString = function(data) {
 };
 
 var epson = function(device) {
-    var device = device;
     var sequence = 0;
     var self = this;
 
     this.protocol = 'epson';
+    this.device = device;
 
     this.sendACK = function(callback) {
         var buf = new Uint8Array([0x06]);
-        chrome.usb.bulkTransfer(device,
+        chrome.usb.bulkTransfer(self.device,
             {   'direction': 'out',
                 'endpoint': 0x01,
                 'data': buf.buffer, 
@@ -441,7 +441,7 @@ var epson = function(device) {
                     };
                 };
             };
-        chrome.usb.bulkTransfer(device,
+        chrome.usb.bulkTransfer(self.device,
             {   'direction': 'in',
                 'endpoint': 0x82,
                 'length': 2048
@@ -453,8 +453,8 @@ var epson = function(device) {
             console.debug("EPSON: Device closed");
             callback();
         };
-        chrome.usb.releaseInterface(device, 1, function() {
-            chrome.usb.closeDevice(device, closed);
+        chrome.usb.releaseInterface(self.device, 1, function() {
+            chrome.usb.closeDevice(self.device, closed);
         });
     };
 
@@ -473,7 +473,7 @@ var epson = function(device) {
     };
 
     this.alive = function(true_callback, false_callback) {
-        chrome.usb.listInterfaces(device, function(res) { // Check if device still alive.
+        chrome.usb.listInterfaces(self.device, function(res) { // Check if device still alive.
             if(res != null) { true_callback() } else { false_callback(); };
         });
     };
@@ -496,7 +496,7 @@ var epson = function(device) {
             callback(response);
         };
         this.alive(function() {
-            chrome.usb.bulkTransfer(device, // Send command.
+            chrome.usb.bulkTransfer(self.device, // Send command.
                 {   'direction': 'out',
                     'endpoint': 0x01,
                     'data': in_pack

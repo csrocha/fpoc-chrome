@@ -67,6 +67,9 @@ oerpSession = function(sid, server, session_id) {
     this.add_printer = function(printer, event_function_map, callback) {
         var self = this;
 
+        if (printer.is_connected) return;
+        printer.is_connected = true;
+
         var return_callback = function(mess, ev) { };
 
         this.set_server_events("session_id=" + this.session_id + "&printer_id=" + encodeURIComponent(printer.name),
@@ -315,34 +318,31 @@ oerpSession = function(sid, server, session_id) {
         var self = this;
 
         // Take printers
-        var push_printers = function(keys, printers) {
+        var push_printers = function(keys, printers, _callback) {
             if (keys.length) {
                 self._call('fiscal_printer.fiscal_printer', 'search',
                         [ [['name','in',keys]] ], {}, function(e, fps) {
                             var d = new Date();
-                            var sd = [d.getDate(), d.getMonth()+1, d.getFullYear()].join('/');
-                            for (fp in fps) {
+                            async.each(fps, function(fp, __callback) {
                                 self._call('fiscal_printer.fiscal_printer', 'write',
                                     [ fps[fp], {
                                         'session_id':self.session_id,
                                         'lastUpdate': d,
-                                    } ], {},
-                                          function(e, r) { if (callback) callback(); });
-                            }
+                                    } ], {}, function(e, r) { __callback(); });
+                            }, _callback);
                         })
             };
         };
 
         var publish_printers = function(printers) {
             self.printers = printers;
-
             var keys = takeKeys(printers);
-            push_printers(keys, printers);
-
-            async.each(keys, function(printer, __callback) {
-                console.log("Printers to publish:", printer);
-                self.add_printer(printers[printer], printer_server_events, __callback);
-            }, callback);
+            push_printers(keys, printers, function() {
+                async.each(keys, function(printer, __callback) {
+                    console.log("Printers to publish:", printer);
+                    self.add_printer(printers[printer], printer_server_events, __callback);
+                }, callback);
+            });
         }
 
         self.clean(function(){

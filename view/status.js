@@ -9,7 +9,8 @@ var connect_button    = document.querySelector("#disconnected button");
 var server_input      = document.querySelector("select[name=server]");
 var server_text       = document.querySelector("#server");
 var server_href       = document.querySelector("a#server");
-var login_text        = document.querySelector("#login");
+var login_text        = document.querySelector("b#login");
+var database_text     = document.querySelector("b#database");
 var database_input    = document.querySelector("select[name='database']");
 var login_input       = document.querySelector("input[name='login']");
 var password_input    = document.querySelector("input[name='password']");
@@ -53,6 +54,7 @@ function do_message(dir, message) {
     var message_element = document.createElement("p");
     message_element.textContent = dir + "|" + message;
     logger_section.appendChild(message_element);
+    update_view();
 }
 
 function load_databases() {
@@ -90,6 +92,7 @@ function update_view() {
     server_text.textContent = session && session.server || "[NONE]";
     server_href.href = session && (session.server + "?db=" + session.db) || "[NONE]";
     login_text.textContent = session && session.username || "[NONE]";
+    database_text.textContent = session && session.db || "[NONE]";
 
     // Remove printers
     for(var i = printer_table.rows.length - 1; i > 0; i--) {
