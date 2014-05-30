@@ -28,6 +28,7 @@ oerpSession = function(sid, server, session_id) {
     this.onlogerror = null;
     this.onerror = null;
     this.onexpired = null;
+    this.onchange = null;
 
     this.printers = null;
     this.lastOperationStatus = 'No info';
@@ -67,7 +68,7 @@ oerpSession = function(sid, server, session_id) {
     this.add_printer = function(printer, event_function_map, callback) {
         var self = this;
 
-        if (printer.is_connected) return;
+        if (printer.is_connected || self.uid == null) return;
         printer.is_connected = true;
 
         var return_callback = function(mess, ev) { };
@@ -319,7 +320,7 @@ oerpSession = function(sid, server, session_id) {
 
         // Take printers
         var push_printers = function(keys, printers, _callback) {
-            if (keys.length) {
+            if (keys.length && self.uid) {
                 self._call('fiscal_printer.fiscal_printer', 'search',
                         [ [['name','in',keys]] ], {}, function(e, fps) {
                             var d = new Date();
@@ -331,6 +332,8 @@ oerpSession = function(sid, server, session_id) {
                                     } ], {}, function(e, r) { __callback(); });
                             }, _callback);
                         })
+            } else {
+                _callback();
             };
         };
 
@@ -344,9 +347,9 @@ oerpSession = function(sid, server, session_id) {
                 }, callback);
             });
         }
-
+        
         self.clean(function(){
-            query_local_printers( publish_printers );
+            query_local_printers( publish_printers, self.onchange );
         });
     }
 };

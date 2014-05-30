@@ -54,7 +54,7 @@ function do_message(dir, message) {
     var message_element = document.createElement("p");
     message_element.textContent = dir + "|" + message;
     logger_section.appendChild(message_element);
-    update_view();
+    //update_view();
 }
 
 function load_databases() {
@@ -63,7 +63,7 @@ function load_databases() {
         server_input.selectedIndex = 0;
         session.server = null;
     };
-    if (session) {
+    if (window.session) {
         session.server = server_input.selectedOptions[0].attributes.value.value;
         session.get_database_list(function(mess, databases) {
             if (mess == "done") {
@@ -79,12 +79,10 @@ function load_databases() {
 };
 
 function update_view() {
-    if (typeof session === undefined) {
-        console.log("Session is not defined. Something wrong and dangerous happening.");
-        debugger;
+    if (window.session === undefined) {
         return;
     };
-	show_login = session && session.uid;
+	show_login = window.session && session.uid;
 
 	disconnected_div.hidden = show_login;
 	connected_div.hidden = !show_login;
@@ -136,19 +134,16 @@ function update_view() {
 };
 
 function update() {
-	update_view();
-    session.onmessage = do_message;
-};
-
-function update() {
-	update_view();
-
-	if (session) {
+	if (window.session) {
 		session.get_session_info(function(sess) {
 			update_view();
 		});
-	}
+	} else {
+	    update_view();
+    }
 };
+
+window.update = update;
 
 disconnect_button.onclick = function(event) {
 	session.logout(function(ev){
@@ -180,7 +175,7 @@ login_button.onclick = function(event) {
         });
 };
 
-
 update();
+window.session.onchange = function() { update_view(); }
 
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -4,6 +4,14 @@
 
 var session = null;
 
+// Function searching for new printers or remove then if disconnected.
+function poolingPrinter() {
+    setTimeout(function(){ if (session) {
+        console.log("Pooling for printers");
+        session.update(poolingPrinter());
+    }; }, 3000);
+};
+
 function open_status(sess) {
     if (chrome.app.window.get('status') == null) {
         chrome.app.window.create('view/status.html', {
@@ -62,14 +70,6 @@ function login(callback) {
     });
 };
 
-// Function searching for new printers or remove then if disconnected.
-(function poolingPrinter() {
-    setTimeout(function(){ if (session) {
-        console.log("Pooling for printers");
-        session.update(poolingPrinter());
-    }; }, 3000);
-})();
-
 // Start login.
 login(function(){
     // Set status windows when application is launched.
@@ -78,5 +78,7 @@ login(function(){
         open_status(session);
     });
 });
+
+poolingPrinter();
 
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -2,13 +2,7 @@
 // Control server events.
 //
 control_server_events = {
-    'status': function(session, event_data, data, callback) {
-    },
-};
-
-printer_server_events = {
-    'info': function(session, event_data, printers, callback) {
-        var parms = JSON.parse(ev.data);
+    'list_printers': function(session, event_data, printers, callback) {
         var tmpPrinters = [];
         var push_printers = function(keys, printers) {
             if (keys.length) {
@@ -42,6 +36,10 @@ printer_server_events = {
         console.log("Query local printers.");
         query_local_printers( publish_printers );
     },
+};
+
+printer_server_events = {
+
     'short_test': function(session, event_data, printers, callback) {
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {

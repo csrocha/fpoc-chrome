@@ -21,7 +21,9 @@ var supported_printers = [
     { port: 'usb', protocol: 'epson', vendorId: 1208, productId: 514 },
     ];
 
-var query_local_printers = function(callback) {
+var query_local_printers = function(callback, onchange) {
+
+    var change = false;
 
     var declarePrinter = function(protocol, handle, _callback) {
         switch (protocol) {
@@ -43,55 +45,59 @@ var query_local_printers = function(callback) {
                                 }
                             } else {
                                 console.warn("Device yet taken");
-                                _callback();
-                            }
+                            };
+                            _callback();
                         });
                     });
                 });
         };
     };
 
-    var onDeviceFound = function(protocol, vendorId, productId, devices, callback) {
+    var onDeviceFound = function(protocol, vendorId, productId, devices, callback_) {
         var protocol = protocol;
         var devices = devices;
-        var callback = callback;
+        var callback_ = callback_;
         // Remove devices if not connected.
-        async.each(takeKeys(local_devices), function(item, __callback) {
+        async.each(takeKeys(local_devices), function(item, __callback_) {
             var remove = true;
             for(i in devices) { remove &= (devices[i]['device'] != item); };
             if (remove) {
                 console.log("Remove device");
+                change=true;
                 chrome.usb.closeDevice(local_devices[item], function() { 
-                    async.each(takeKeys(local_printers), function(key, ___callback) {
-                        if (local_printers[key].device.handle == local_devices[item].handle) {
+                    async.each(takeKeys(local_printers), function(key, ___callback_) {
+                        if (local_devices[item] && local_printers[key] &&
+                            local_printers[key].device.handle == local_devices[item].handle) {
                             delete local_devices[item];
                             delete local_printers[key];
                         }
-                        ___callback();
-                    }, __callback );
+                        ___callback_();
+                    }, __callback_ );
                 });
             } else {
-                __callback();
+                __callback_();
             }
         }, function() {
             // Create new devices.
-            async.each(devices, function(item, __callback) {
+            async.each(devices, function(item, __callback_) {
                 if (item['device'] in local_devices) {
                     console.log("Device yet exists.");
-                    __callback();
+                    __callback_();
                 } else {
                     console.log("New device.");
+                    change=true;
                     chrome.usb.openDevice(item, function(handle){
                         local_devices[item['device']] = handle;
-                        declarePrinter(protocol, handle, function() { __callback(); });
+                        declarePrinter(protocol, handle, function() { __callback_(); });
                     });
                 };
-            }, callback);
+            }, callback_);
         });
     };
 
     var ___callback = function() {
         if (callback) callback(local_printers);
+        if (change && onchange) { onchange(); }
     };
 
     async.each(supported_printers, function(item, _callback) {
