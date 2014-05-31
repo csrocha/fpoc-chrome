@@ -6,7 +6,7 @@ var disconnected_div  = document.querySelector("#disconnected");
 var connected_div     = document.querySelector("#connected");
 var disconnect_button = document.querySelector("#connected button");
 var connect_button    = document.querySelector("#disconnected button");
-var server_input      = document.querySelector("select[name=server]");
+var server_input      = document.querySelector("input[name=server]");
 var server_text       = document.querySelector("#server");
 var server_href       = document.querySelector("a#server");
 var login_text        = document.querySelector("b#login");
@@ -57,14 +57,14 @@ function do_message(dir, message) {
     //update_view();
 }
 
-function load_databases() {
+function load_databases(url) {
     var on_error = function() {
         do_alert("Connection problem with OpenERP server " + session.server + ".");
         server_input.selectedIndex = 0;
         session.server = null;
     };
     if (window.session) {
-        session.server = server_input.selectedOptions[0].attributes.value.value;
+        session.server = url;
         session.get_database_list(function(mess, databases) {
             if (mess == "done") {
                 for (var db in databases) {
@@ -153,11 +153,9 @@ disconnect_button.onclick = function(event) {
 };
 
 server_input.onchange = function(event) {
-	if (server_input.selectedIndex > 0) {
-		load_databases();
+	if (server_input.value) {
+		load_databases(server_input.value);
         update_view()
-	} else {
-		//database_input.
 	}
 };
 
