@@ -1078,9 +1078,11 @@ var epson = function(device) {
 
 function epson_open(device, callback) {
     console.debug("EPSON: Constructor");
-    chrome.usb.claimInterface(device, 1, function() {
-        console.debug("EPSON: Device claimed");
-        callback(new epson(device));
+    chrome.usb.claimInterface(device, 0, function() {
+        chrome.usb.claimInterface(device, 1, function() {
+            console.debug("EPSON: Device claimed");
+            callback(new epson(device));
+        });
     });
 };
 
