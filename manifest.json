@@ -18,13 +18,11 @@
 	  }
   },
 
-  "permissions": [
-	  "cookies",
-	  "*://localhost:*/*"
-  ],
-
   "externally_connectable": {
-	  "matches": ["*://localhost:*/*"]
+     "matches": [
+         "*://localhost:*/*",
+         "*://serverhost:*/*"
+     ]
   },
 
   "permissions": [
