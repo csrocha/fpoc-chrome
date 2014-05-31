@@ -323,14 +323,21 @@ oerpSession = function(sid, server, session_id) {
             if (keys.length && self.uid) {
                 self._call('fiscal_printer.fiscal_printer', 'search',
                         [ [['name','in',keys]] ], {}, function(e, fps) {
-                            var d = new Date();
-                            async.each(fps, function(fp, __callback) {
-                                self._call('fiscal_printer.fiscal_printer', 'write',
-                                    [ fps[fp], {
-                                        'session_id':self.session_id,
-                                        'lastUpdate': d,
-                                    } ], {}, function(e, r) { __callback(); });
-                            }, _callback);
+                            if (e == 'error') {
+                                async.each(takeKeys(self.printers), function(key, __callback) {
+                                    self.printers[key].is_connected = false;
+                                    __callback();
+                                });
+                            } else {
+                                var d = new Date();
+                                async.each(fps, function(fp, __callback) {
+                                    self._call('fiscal_printer.fiscal_printer', 'write',
+                                        [ fp, {
+                                            'session_id':self.session_id,
+                                            'lastUpdate': d,
+                                        } ], {}, function(e, r) { __callback(); });
+                                }, _callback);
+                            }
                         })
             } else {
                 _callback();
