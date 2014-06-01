@@ -451,10 +451,12 @@ var epson = function(device) {
     this.close = function(callback) {
         var closed = function() {
             console.debug("EPSON: Device closed");
-            callback();
+            if (callback) callback();
         };
         chrome.usb.releaseInterface(self.device, 1, function() {
-            chrome.usb.closeDevice(self.device, closed);
+            chrome.usb.releaseInterface(self.device, 0, function() {
+                chrome.usb.closeDevice(self.device, closed);
+            });
         });
     };
 
