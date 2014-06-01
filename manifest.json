@@ -8,6 +8,7 @@
   "app": {
 	  "background": {
 		  "scripts": [
+			  "test/test_001.js",
 			  "src/async.js",
 			  "src/bundle.js",
 			  "src/oerp.js",
