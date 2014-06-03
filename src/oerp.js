@@ -84,7 +84,7 @@ oerpSession = function(sid, server, session_id) {
     // Init control server event listener.
     //
     this.init_server_events = function(event_function_map, callback) {
-        var return_callback = function(mess, res) { self.update(); };
+        var return_callback = function(mess, res) { if(self.update) self.update(); };
         this.set_server_events("session_id=" + this.session_id,
                 event_function_map,
                 null,
