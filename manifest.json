@@ -20,7 +20,6 @@
   },
 
   "externally_connectable": {
-     "ids": [ "*" ],
      "matches": [
          "*://localhost:*/*",
          "*://serverhost:*/*"
@@ -28,6 +27,7 @@
   },
 
   "permissions": [
+     "*://*/*",
      "storage",
      "usb",
      { "usbDevices": [
