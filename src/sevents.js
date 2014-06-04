@@ -94,11 +94,27 @@ printer_server_events = {
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
             printer.get_status(function(res){
+                var response = res;
+                response['printer_id'] = printer_id;
+                printer.get_datetime(function(res) {
+                    var date = res.date;
+                    var time = res.time;
+                    response['clock'] = "20"+date.slice(4,6)+"-"+date.slice(2,4)+"-"+date.slice(0,2)+" "+time.slice(0,2)+":"+time.slice(2,4)+":"+time.slice(4,6);
+                    session.send(response,callback);
+                });
+            });
+        }
+    },
+    'read_attributes': function(session, event_data, printers, callback) {
+        var printer_id = event_data.name;
+        if (typeof printers == 'object' && printer_id in printers) {
+            var printer = printers[printer_id];
+            printer.read_attributes(function(res){
                 res['printer_id'] = printer_id;
                 session.send(res,callback);
             });
         }
-    },
+    }
 };
 // To take params from event:
 // var parms = JSON.parse(ev.data);
