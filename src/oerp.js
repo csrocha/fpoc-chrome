@@ -42,9 +42,16 @@ oerpSession = function(sid, server, session_id) {
         console.log("Create spool ", params);
 
         var receptor = new EventSource(this.server + "/fp/spool?" + params);
-        receptor.onopen = function(ev) { console.log("OPEN!!!!", ev); };
-        receptor.onerror = function(ev) { console.log("ERROR!!!!", ev); };
-        receptor.onmessage = function(ev) { console.log("MESSAGE!!!!", ev); };
+        receptor.onopen = function(ev) {
+            console.log("SERVER EVENT OPEN!!!!", ev);
+        };
+        receptor.onerror = function(ev) {
+            console.log("SERVER EVENT ERROR!!!!", ev);
+            return_callback("error", ev);
+        };
+        receptor.onmessage = function(ev) {
+            console.log("SERVER EVENT MESSAGE!!!!", ev);
+        };
 
         async.each(takeKeys(event_function_map), function(event_key, __callback) {
                 var event_callback = function(ev) {
@@ -68,23 +75,35 @@ oerpSession = function(sid, server, session_id) {
     this.add_printer = function(printer, event_function_map, callback) {
         var self = this;
 
-        if (printer.is_connected || self.uid == null) return;
+        if (printer.is_connected || !self.uid) return;
         printer.is_connected = true;
 
-        var return_callback = function(mess, ev) { };
+        var return_callback = function(mess, ev) {
+            console.log(mess);
+        };
+        var _callback = function(ev) {
+            callback(ev);
+        };
 
         this.set_server_events("session_id=" + this.session_id + "&printer_id=" + encodeURIComponent(printer.name),
                 event_function_map,
                 self.printers,
                 return_callback,
-                callback);
+                _callback);
     };
 
     //
     // Init control server event listener.
     //
     this.init_server_events = function(event_function_map, callback) {
-        var return_callback = function(mess, res) { if(self.update) self.update(); };
+        var self = this;
+
+        var return_callback = function(mess, res) {
+            if (mess == 'error') {
+                setTimeout(function() { self.init_server_events(event_function_map, callback); }, 3000);
+            } else
+                if(self.update) self.update();
+        };
         this.set_server_events("session_id=" + this.session_id,
                 event_function_map,
                 null,
