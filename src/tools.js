@@ -87,8 +87,13 @@ var query_local_printers = function(callback, onchange) {
                     console.log("New device.");
                     change=true;
                     chrome.usb.openDevice(item, function(handle){
-                        local_devices[item['device']] = handle;
-                        declarePrinter(protocol, handle, function() { __callback_(); });
+                        if (handle) {
+                            local_devices[item['device']] = handle;
+                            declarePrinter(protocol, handle, function() { __callback_(); });
+                        } else {
+                            console.log("Device is not accessible.");
+                            __callback_();
+                        }; 
                     });
                 };
             }, callback_);
