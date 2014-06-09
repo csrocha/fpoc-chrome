@@ -18,7 +18,7 @@ var local_printers = {};
 var local_devices = {};
 
 var supported_printers = [
-    { port: 'usb', protocol: 'epson', vendorId: 1208, productId: 514 },
+    { port: 'usb', protocol: 'epson_ar', vendorId: 1208, productId: 514 },
     ];
 
 var query_local_printers = function(callback, onchange) {
@@ -27,8 +27,8 @@ var query_local_printers = function(callback, onchange) {
 
     var declarePrinter = function(protocol, handle, _callback) {
         switch (protocol) {
-        case 'epson':
-            epson_open(handle,
+        case 'epson_ar':
+            epson_ar_open(handle,
                 function(printer) {
                     printer.get_status(function(result){
                         printer.get_id(function(result){
