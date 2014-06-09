@@ -9,10 +9,11 @@
 	  "background": {
 		  "scripts": [
 			  "test/test_001.js",
+			  "test/test_002.js",
 			  "src/async.js",
 			  "src/bundle.js",
 			  "src/oerp.js",
-			  "src/epson.js",
+			  "src/epson_ar.js",
 			  "src/tools.js",
 			  "src/sevents.js",
 			  "src/background.js" ]
