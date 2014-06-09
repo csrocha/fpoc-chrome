@@ -114,7 +114,17 @@ printer_server_events = {
                 session.send(res,callback);
             });
         }
-    }
+    },
+    'get_counters': function(session, event_data, printers, callback) {
+        var printer_id = event_data.name;
+        if (typeof printers == 'object' && printer_id in printers) {
+            var printer = printers[printer_id];
+            printer.get_counters(function(res){
+                res['printer_id'] = printer_id;
+                session.send(res,callback);
+            });
+        }
+    },
 };
 // To take params from event:
 // var parms = JSON.parse(ev.data);
