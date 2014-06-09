@@ -5,130 +5,130 @@ function pad(n, width, z) {
 }
 
 var result_messages = {
-	"0000":"Resultado exitoso",
-	"0001":"Error interno",
-	"0002":"Error de inicialización del equipo",
-	"0003":"Error de proceso interno",
-	"0101":"Comando inválido para el estado actual",
-	"0102":"Comando inválido para el documento actual",
-	"0103":"Comando sólo aceptado en modo técnico",
-	"0104":"Comando sólo aceptado sin Jumper de Servicio",
-	"0105":"Comando sólo aceptado con Jumper de Servicio",
-	"0106":"Comando sólo aceptado sin Jumper de Uso Interno",
-	"0107":"Comando sólo aceptado con Jumper de Uso Interno",
-	"0108":"Sub estado inválido",
-	"0109":"Límite de intervenciones técnicas alcanzado",
-	"0201":"El frame no contiene el largo mínimo aceptado",
-	"0202":"Comando inválido",
-	"0203":"Campos en exceso",
-	"0204":"Campos en defecto",
-	"0205":"Campo no opcional",
-	"0206":"Campo alfanumérico inválido",
-	"0207":"Campo alfabético inválido",
-	"0208":"Campo numérico inválido",
-	"0209":"Campo binario inválido",
-	"020A":"Campo imprimible inválido",
-	"020B":"Campo hexadecimal inválido",
-	"020C":"Campo fecha inválido",
-	"020D":"Campo hora inválido",
-	"020E":"Campo fiscal rich text inválido",
-	"020F":"Campo booleano inválido",
-	"0210":"Largo del campo inválido",
-	"0211":"Extensión del comando inválida",
-	"0212":"Código de barra no permitido",
-	"0213":"Atributos de impresión no permitidos",
-	"0214":"Atributo de impresión inválido",
-	"0215":"Código de barra incorrectamente definido",
-	"0216":"Combinación de la palabra ‘total’ no aceptada",
-	"0301":"Error de hardware",
-	"0302":"Impresora fuera de línea",
-	"0303":"Error de Impresión",
-	"0304":"Problemas de papel, no se encuentra en condiciones para realizar la acción requerida, verificar que si hay papel en rollo , slip o validación al mismo tiempo",
-	"0305":"Poco papel disponible",
-	"0306":"Error en carga o expulsión de papel",
-	"0307":"Característica de impresora no soportada",
-	"0308":"Error de display",
-	"0309":"Secuencia de scan inválida",
-	"030A":"Número de área de recorte (crop area) inválido",
-	"030B":"Scanner no preparado",
-	"030C":"Resolución de logotipo de la empresa no permitida",
-	"030D":"Imposible imprimir documento en estación térmica",
-	"0401":"Número de serie inválido",
-	"0402":"Deben configurarse los datos de fiscalización",
-	"0501":"Fecha / Hora no configurada",
-	"0502":"Error en cambio de fecha",
-	"0503":"Fecha fuera de rango",
-	"0505":"Número de caja inválido",
-	"0506":"CUIT inválido",
-	"0507":"Responsabilidad frente al IVA inválida",
-	"0508":"Número de línea de Encabezado/Cola inválido",
-	"0509":"Demasiadas fiscalizaciones",
-	"050A":"Demasiados cambios de situación tributaria",
-	"050B":"Demasiados cambios de datos de fiscalización",
-	"0513":"Logo de usuario inválido",
-	"0514":"Secuencia de definición de logos de usuario inválida",
-	"0515":"Configuración de Display inválida",
-	"0516":"Tipo de letra de MICR inválida",
-	"0518":"Líneas de establecimiento no configuradas",
-	"0519":"Datos fiscales no configurados",
-	"0520":"Situación tributaria no configurada",
-	"0521":"Tasa de IVA estándar no configurada",
-	"0522":"Límite de tique-factura no configurado",
-	"0524":"Monto máximo de tique-factura no permitido",
-	"0525":"Largo del logotipo de la empresa no permitido",
-	"0526":"Posición del logotipo de la empresa inválido",
-	"0527":"El tamaño del logotipo de la empresa excede el máximo",
-	"0801":"Comando inválido fuera de la jornada fiscal",
-	"0802":"Comando inválido dentro de la jornada fiscal",
-	"0803":"Memoria fiscal llena. Imposible la apertura de la jornada fiscal",
-	"0807":"Periodo auditado sin datos",
-	"0808":"Rango auditado inválido",
-	"0809":"Restan datos por auditar",
-	"080A":"No hay más datos a descargar",
-	"080B":"No es posible abrir la jornada fiscal",
-	"080C":"No es posible cerrar la jornada fiscal",
-	"0901":"Overflow",
-	"0902":"Underflow",
-	"0903":"Demasiados ítems involucrados en la transacción",
-	"0904":"Demasiadas tasas de impuesto utilizadas",
-	"0905":"Demasiados descuentos/recargos sobre subtotal involucradas en la transacción",
-	"0906":"Demasiados pagos involucrados en la transacción",
-	"0907":"Item no encontrado",
-	"0908":"Pago no encontrado",
-	"0909":"El total debe ser mayor a cero",
-	"090A":"Se permite sólo un tipo de impuestos internos",
-	"090B":"Impuesto interno no aceptado",
-	"090F":"Tasa de IVA no encontrada",
-	"0910":"Tasa de IVA inválida",
-	"0A01":"No permitido luego de descuentos/recargos sobre el subtotal",
-	"0A02":"No permitido luego de iniciar la fase de pago",
-	"0A03":"Tipo de ítem inválido",
-	"0A04":"Línea de descripción en blanco",
-	"0A05":"Cantidad resultante menor que cero",
-	"0A06":"Cantidad resultante mayor a lo permitido",
-	"0A07":"Precio total del ítem mayor al permitido",
-	"0A0A":"Fase de pago finalizada",
-	"0A0B":"Monto de pago no permitido",
-	"0A0C":"Monto de descuento/recargo no permitido",
-	"0A0F":"No permitido antes de un ítem",
-	"0A10":"Demasiadas descripciones extras",
-	"0B01":"Tipo de documento del comprador inválido",
-	"0B02":"Máximo valor aceptado fue superado",
-	"0B03":"CUIT/CUIL inválido",
-	"0B04":"Tipo de percepción inválida",
-	"0B05":"Exceso en la cantidad de líneas de separación de la firma",
-	"0B06":"Monto cero de percepción no permitido",
-	"0B07":"Demasiadas percepciones involucradas en la transacción",
-	"0B08":"Percepción no encontrada",
-	"0B09":"Operación no permitida luego de percepciones",
-	"0B0A":"Exceso de operaciones dentro del documento con triplicado",
-	"0B0B":"Tique factura del turista solo es aceptado en tique-factura B",
-	"0B0C":"Datos del turista inválidos",
-	"0B0D":"Número de documento inválido",
-	"0B0E":"Documento no soportado por el mecanismo de impresión",
-	"0E02":"Exceso de código de barras dentro del documento",
-	"0F02":"Falla en las condiciones del sector de DNFH Multicomando",
-	"FFFF":"Error desconocido",
+	0x0000:"Resultado exitoso",
+	0x0001:"Error interno",
+	0x0002:"Error de inicialización del equipo",
+	0x0003:"Error de proceso interno",
+	0x0101:"Comando inválido para el estado actual",
+	0x0102:"Comando inválido para el documento actual",
+	0x0103:"Comando sólo aceptado en modo técnico",
+	0x0104:"Comando sólo aceptado sin Jumper de Servicio",
+	0x0105:"Comando sólo aceptado con Jumper de Servicio",
+	0x0106:"Comando sólo aceptado sin Jumper de Uso Interno",
+	0x0107:"Comando sólo aceptado con Jumper de Uso Interno",
+	0x0108:"Sub estado inválido",
+	0x0109:"Límite de intervenciones técnicas alcanzado",
+	0x0201:"El frame no contiene el largo mínimo aceptado",
+	0x0202:"Comando inválido",
+	0x0203:"Campos en exceso",
+	0x0204:"Campos en defecto",
+	0x0205:"Campo no opcional",
+	0x0206:"Campo alfanumérico inválido",
+	0x0207:"Campo alfabético inválido",
+	0x0208:"Campo numérico inválido",
+	0x0209:"Campo binario inválido",
+	0x020A:"Campo imprimible inválido",
+	0x020B:"Campo hexadecimal inválido",
+	0x020C:"Campo fecha inválido",
+	0x020D:"Campo hora inválido",
+	0x020E:"Campo fiscal rich text inválido",
+	0x020F:"Campo booleano inválido",
+	0x0210:"Largo del campo inválido",
+	0x0211:"Extensión del comando inválida",
+	0x0212:"Código de barra no permitido",
+	0x0213:"Atributos de impresión no permitidos",
+	0x0214:"Atributo de impresión inválido",
+	0x0215:"Código de barra incorrectamente definido",
+	0x0216:"Combinación de la palabra ‘total’ no aceptada",
+	0x0301:"Error de hardware",
+	0x0302:"Impresora fuera de línea",
+	0x0303:"Error de Impresión",
+	0x0304:"Problemas de papel, no se encuentra en condiciones para realizar la acción requerida, verificar que si hay papel en rollo , slip o validación al mismo tiempo",
+	0x0305:"Poco papel disponible",
+	0x0306:"Error en carga o expulsión de papel",
+	0x0307:"Característica de impresora no soportada",
+	0x0308:"Error de display",
+	0x0309:"Secuencia de scan inválida",
+	0x030A:"Número de área de recorte (crop area) inválido",
+	0x030B:"Scanner no preparado",
+	0x030C:"Resolución de logotipo de la empresa no permitida",
+	0x030D:"Imposible imprimir documento en estación térmica",
+	0x0401:"Número de serie inválido",
+	0x0402:"Deben configurarse los datos de fiscalización",
+	0x0501:"Fecha / Hora no configurada",
+	0x0502:"Error en cambio de fecha",
+	0x0503:"Fecha fuera de rango",
+	0x0505:"Número de caja inválido",
+	0x0506:"CUIT inválido",
+	0x0507:"Responsabilidad frente al IVA inválida",
+	0x0508:"Número de línea de Encabezado/Cola inválido",
+	0x0509:"Demasiadas fiscalizaciones",
+	0x050A:"Demasiados cambios de situación tributaria",
+	0x050B:"Demasiados cambios de datos de fiscalización",
+	0x0513:"Logo de usuario inválido",
+	0x0514:"Secuencia de definición de logos de usuario inválida",
+	0x0515:"Configuración de Display inválida",
+	0x0516:"Tipo de letra de MICR inválida",
+	0x0518:"Líneas de establecimiento no configuradas",
+	0x0519:"Datos fiscales no configurados",
+	0x0520:"Situación tributaria no configurada",
+	0x0521:"Tasa de IVA estándar no configurada",
+	0x0522:"Límite de tique-factura no configurado",
+	0x0524:"Monto máximo de tique-factura no permitido",
+	0x0525:"Largo del logotipo de la empresa no permitido",
+	0x0526:"Posición del logotipo de la empresa inválido",
+	0x0527:"El tamaño del logotipo de la empresa excede el máximo",
+	0x0801:"Comando inválido fuera de la jornada fiscal",
+	0x0802:"Comando inválido dentro de la jornada fiscal",
+	0x0803:"Memoria fiscal llena. Imposible la apertura de la jornada fiscal",
+	0x0807:"Periodo auditado sin datos",
+	0x0808:"Rango auditado inválido",
+	0x0809:"Restan datos por auditar",
+	0x080A:"No hay más datos a descargar",
+	0x080B:"No es posible abrir la jornada fiscal",
+	0x080C:"No es posible cerrar la jornada fiscal",
+	0x0901:"Overflow",
+	0x0902:"Underflow",
+	0x0903:"Demasiados ítems involucrados en la transacción",
+	0x0904:"Demasiadas tasas de impuesto utilizadas",
+	0x0905:"Demasiados descuentos/recargos sobre subtotal involucradas en la transacción",
+	0x0906:"Demasiados pagos involucrados en la transacción",
+	0x0907:"Item no encontrado",
+	0x0908:"Pago no encontrado",
+	0x0909:"El total debe ser mayor a cero",
+	0x090A:"Se permite sólo un tipo de impuestos internos",
+	0x090B:"Impuesto interno no aceptado",
+	0x090F:"Tasa de IVA no encontrada",
+	0x0910:"Tasa de IVA inválida",
+	0x0A01:"No permitido luego de descuentos/recargos sobre el subtotal",
+	0x0A02:"No permitido luego de iniciar la fase de pago",
+	0x0A03:"Tipo de ítem inválido",
+	0x0A04:"Línea de descripción en blanco",
+	0x0A05:"Cantidad resultante menor que cero",
+	0x0A06:"Cantidad resultante mayor a lo permitido",
+	0x0A07:"Precio total del ítem mayor al permitido",
+	0x0A0A:"Fase de pago finalizada",
+	0x0A0B:"Monto de pago no permitido",
+	0x0A0C:"Monto de descuento/recargo no permitido",
+	0x0A0F:"No permitido antes de un ítem",
+	0x0A10:"Demasiadas descripciones extras",
+	0x0B01:"Tipo de documento del comprador inválido",
+	0x0B02:"Máximo valor aceptado fue superado",
+	0x0B03:"CUIT/CUIL inválido",
+	0x0B04:"Tipo de percepción inválida",
+	0x0B05:"Exceso en la cantidad de líneas de separación de la firma",
+	0x0B06:"Monto cero de percepción no permitido",
+	0x0B07:"Demasiadas percepciones involucradas en la transacción",
+	0x0B08:"Percepción no encontrada",
+	0x0B09:"Operación no permitida luego de percepciones",
+	0x0B0A:"Exceso de operaciones dentro del documento con triplicado",
+	0x0B0B:"Tique factura del turista solo es aceptado en tique-factura B",
+	0x0B0C:"Datos del turista inválidos",
+	0x0B0D:"Número de documento inválido",
+	0x0B0E:"Documento no soportado por el mecanismo de impresión",
+	0x0E02:"Exceso de código de barras dentro del documento",
+	0x0F02:"Falla en las condiciones del sector de DNFH Multicomando",
+	0xFFFF:"Error desconocido",
 };
 
 var STX = 0x02
@@ -225,6 +225,7 @@ function pack() {
         '_': FLD,
     };
     for (i=0, j=1; i < types.length; i++) {
+        console.log("T:", types[i])
         if (types[i] in SymbolMap) {
             value = (new Uint8Array([SymbolMap[types[i]]])).buffer;
         } else
@@ -237,7 +238,22 @@ function pack() {
             vvalue.setUint16(0, fields[j++], false);
             value = bufEscape(value);
         } else
-        if (['A', 'L', 'N', 'B', 'P', 'H', 'R', 'Y', 'B', 'D', 'T'].indexOf(types[i]) >= 0) {
+        if (['N'].indexOf(types[i]) >= 0) {
+            var integers = parseInt(types[++i],16);
+            var decimals = parseInt(types[++i],16);
+            var prevalue = pad(fields[j++].toFixed(decimals), integers + 1 + decimals, "0").split(".");
+            var value = null;
+            if (integers == 0) {
+                value = str2ab(prevalue[1].substr(0,decimals))
+            } else if (decimals == 0) {
+                value = str2ab(prevalue[0].substr(1,integers))
+            } else {
+                value = str2ab(prevalue.join(""));
+            }
+            console.log("PV:", fields[j-1], "->", ab2str(value))
+            value = bufEscape(value);
+        } else
+        if (['A', 'L', 'B', 'P', 'H', 'R', 'Y', 'B', 'D', 'T'].indexOf(types[i]) >= 0) {
             var value = null;
                  if (typeof fields[j] == 'number') { value = str2ab(fields[j++].toString()); }
             else if (typeof fields[j] == 'string') { value = str2ab(fields[j++]); }
@@ -400,7 +416,7 @@ var printerStateString = function(data) {
         strReceiptState[s.receiptState]
 };
 
-var epson = function(device) {
+var epson_ar = function(device) {
     var sequence = 0;
     var self = this;
 
@@ -493,7 +509,7 @@ var epson = function(device) {
                 response.strFiscalStatus = fiscalStateString(response.fiscalStatus);
             };
             if (response && response.result) {
-                response.strResult = result_messages[pad(response.result.toString(16), 4)];
+                response.strResult = result_messages[response.result];
             };
             callback(response);
         };
@@ -581,7 +597,7 @@ var epson = function(device) {
     this._ripple_test = function(station, no_lines, callback) {
         self.command(
                 '_ripple_test',
-                pack("<SW_W_N>*", sequence++, 0x0204, station, no_lines),
+                pack("<SW_W_N30>*", sequence++, 0x0204, station, no_lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -652,7 +668,7 @@ var epson = function(device) {
     this.set_header_lines = function(lineno, text, callback) {
         self.command(
                 'set_header_lines',
-                pack("<SW_W_N_R>*", sequence++, 0x0508, 0x0000, lineno, text),
+                pack("<SW_W_N30_R>*", sequence++, 0x0508, 0x0000, lineno, text),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -662,7 +678,7 @@ var epson = function(device) {
     this.get_header_lines = function(lineno, callback) {
         self.command(
                 'get_header_lines',
-                pack("<SW_W_N>*", sequence++, 0x0509, 0x0000, lineno),
+                pack("<SW_W_N30>*", sequence++, 0x0509, 0x0000, lineno),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'text'],
                 callback);
@@ -672,7 +688,7 @@ var epson = function(device) {
     this.set_footer_lines = function(lineno, text, callback) {
         self.command(
                 'set_footer_lines',
-                pack("<SW_W_N_R>*", sequence++, 0x050A, 0x0000, lineno, text),
+                pack("<SW_W_N30_R>*", sequence++, 0x050A, 0x0000, lineno, text),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -682,7 +698,7 @@ var epson = function(device) {
     this.get_footer_lines = function(lineno, callback) {
         self.command(
                 'get_footer_lines',
-                pack("<SW_W_N>*", sequence++, 0x050B, 0x0000, lineno),
+                pack("<SW_W_N30>*", sequence++, 0x050B, 0x0000, lineno),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'text'],
                 callback);
@@ -712,7 +728,7 @@ var epson = function(device) {
     this.init_load_logo = function(width, height, quantity, callback) {
         self.command(
                 'init_load_logo',
-                pack("<SW_W_W_W_N>*", sequence++, 0x0530, 0x0000,
+                pack("<SW_W_W_W_N10>*", sequence++, 0x0530, 0x0000,
                     width, height, quantity),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -764,7 +780,7 @@ var epson = function(device) {
     this.set_max_amount = function(amount, callback) {
         self.command(
                 'set_max_amount',
-                pack("<SW_W_N>*", sequence++, 0x0540, 0x0000,
+                pack("<SW_W_N92>*", sequence++, 0x0540, 0x0000,
                     amount),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -796,7 +812,7 @@ var epson = function(device) {
     this._advance_paper = function(station, lines, callback) {
         self.command(
                 'advance_paper',
-                pack("<SW_W_N>*", sequence++, 0x0701, station & 0x0003, lines),
+                pack("<SW_W_N20>*", sequence++, 0x0701, station & 0x0003, lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -851,8 +867,8 @@ var epson = function(device) {
                  'last_b_sale_document',     // 5
                  'last_a_credit_document',
                  'last_b_credit_document',
-                 'last_fiscal_document',
-                 'last_fiscal_homo_document',
+                 'last_nfiscal_document',
+                 'last_nfiscal_homo_document',
                  'total_sale',               // 10
                  'total_vat',
                  'total_fixed_tax',
@@ -875,6 +891,377 @@ var epson = function(device) {
                  'number_of_b_credit_document',
                  'need_close_journal',       // 30
                  ],
+                callback);
+    }
+
+    // 6.5.23 Información de Contadores (08 30)
+    this._get_counters = function(callback) {
+        self.command(
+                'get_counters',
+                pack("<SW_W>*", sequence++, 0x0830, 0x0000),
+                '<SW_W__W__N_N_N_N_N_N_N_N_N_N_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'last_z_report',                  // 1
+                 'last_intervetion',
+                 'last_b_sale_document',
+                 'last_a_sale_document',
+                 'last_nfiscal_document',          // 5
+                 'last_nfiscal_homo_document',
+                 'last_b_credit_document',
+                 'last_a_credit_document',
+                 'last_responsability',
+                 'last_b_sale_document_completed', // 10
+                 'last_a_sale_document_completed',
+                 ],
+                callback);
+    }
+
+    // Comandos de Tique-Factura / Tique-Nota de Débito (0B)
+    // 6.7.1 Abrir (0B 01)
+    //
+    // partner_document_type =  D: DNI,
+    //                          L: CUIL,
+    //                          T: CUIT, 
+    //                          C: Cedula de Identidad, 
+    //                          P: Pasaporte, 
+    //                          V: Libreta Civica, 
+    //                          E: Libreta Enrolamiento.
+    // partner_document_number = I: Inscripto, 
+    //                           N: No responsable, 
+    //                           M: Monotributista,
+    //                           E: Exento,
+    //                           U: No categorizado,
+    //                           F: Consumidor final,
+    //                           T: Monotributista social,
+    //                           P: Monotributista trabajador independiente promovido.
+    //
+    this._open_fiscal_ticket = function(
+            triplicated,
+            store_descriptions,
+            keep_description_attributes,
+            store_extra_descriptions,
+            turist_ticket,
+            debit_note,
+            partner_name,
+            partner_name_2,
+            partner_address,
+            partner_address_2,
+            partner_address_3,
+            partner_document_type,
+            partner_document_number,
+            partner_responsability,
+            related_document,
+            related_document_2,
+            turist_check,
+            callback) {
+        var ext = (triplicated           && 0x0002) |
+            (store_descriptions          && 0x0080) |
+            (keep_description_attributes && 0x0100) |
+            (store_extra_descriptions    && 0x0200) |
+            (turist_ticket               && 0x1000) |
+            (debit_note                  && 0x2000);
+
+        self.command(
+                'open_fiscal_ticket',
+                pack("<SW_W_R_R_R_R_R_L_A_L_R_R_R>*", sequence++, 0x0B01, ext,
+                        partner_name,
+                        partner_name_2,
+                        partner_address,
+                        partner_address_2,
+                        partner_address_3,
+                        partner_document_type,   
+                        partner_document_number,
+                        partner_responsability,  
+                        related_document,
+                        related_document_2,
+                        turist_check),
+                '<SW_W__W_>*',
+                ['printerStatus', 'fiscalStatus', 'result'],
+                callback);
+    }
+
+    // 6.7.2 Item (0B 02)
+    //
+    // item_action = sale_item: Item de venta.
+    //               cancel_sale_item: Anulación de ítem de venta.
+    //               return_can: Item de retorno de envases.
+    //               cancel_return_can: Anulación de ítem de retorno de envases.
+    //               return_item: Item de retorno.
+    //               cancel_return_item: Anulación de ítem de retorno.
+    //               discount_item: Item de descuento.
+    //               cancel_discount_item: Anulación de ítem de descuento.
+    //
+    // as_gross = Considerar parámetros como montos Brutos.
+    //
+    // send_subtotal = Envía campo Subtotal parcial del tique.
+    //
+    // check_item = Marcar ítem.
+    //
+    // collect_type = q: Contabilizar ítem de venta igual a la cantidad Q.
+    //                unit: Contabilizar ítem de venta como cantidad unitaria (bulto).
+    //                none: No contabilizar ítem de venta en cantidad de unidades.
+    //
+    // large_label = Imprime leyenda larga.
+    //
+    // first_line_label = Imprime leyenda en la primera línea de descripción.
+    //
+    // description = Descripción extra #1
+    //
+    // description_2 = Descripción extra #2
+    //
+    // description_3 = Descripción extra #3
+    //
+    // description_4 = Descripción extra #4
+    //
+    // item_description = Descripción del ítem
+    //
+    // quantity = Cantidad
+    //
+    // unit_price = Precio unitario
+    //
+    // vat_rate = Tasa de IVA
+    //
+    // fixed_taxes = Impuestos internos fijos
+    //
+    // taxes_rate = Coeficiente de impuestos internos porcentuales
+    //
+    this._item_fiscal_ticket = function(
+            item_action,
+            as_gross,
+            send_subtotal,
+            check_item,
+            collect_type,
+            large_label,
+            first_line_label,
+            description,
+            description_2,
+            description_3,
+            description_4,
+            item_description,
+            quantity,
+            unit_price,
+            vat_rate,
+            fixed_taxes,
+            taxes_rate,
+            callback) {
+        var ext = (item_action == 'sale_item'            && 0x0000) |
+                  (item_action == 'cancel_sale_item'     && 0x0001) |
+                  (item_action == 'return_can'           && 0x0002) |
+                  (item_action == 'cancel_return_can'    && 0x0003) |
+                  (item_action == 'return_item'          && 0x0004) |
+                  (item_action == 'cancel_return_item'   && 0x0005) |
+                  (item_action == 'discount_item'        && 0x0006) |
+                  (item_action == 'cancel_discount_item' && 0x0007) |
+                  (as_gross                              && 0x0008) |
+                  (send_subtotal                         && 0x0010) |
+                  (check_item                            && 0x0020) |
+                  (collect_type == 'q'                   && 0x0000) |
+                  (collect_type == 'unit'                && 0x0040) |
+                  (collect_type == 'none'                && 0x0080) |
+                  (large_label                           && 0x1000) |
+                  (first_line_label                      && 0x2000);
+        self.command(
+                'item_fiscal_ticket',
+                pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0B02, ext,
+                        description,
+                        description_2,
+                        description_3,
+                        description_4,
+                        item_description,
+                        quantity,
+                        unit_price,
+                        vat_rate,
+                        fixed_taxes,
+                        taxes_rate),
+                '<SW_W__W_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'subtotal'],
+                callback);
+    }
+
+    // 6.7.3 Subtotal (0B 03)
+    //
+    // Retorna el subtotal facturado dentro del tique-factura o nota de débito fiscal.
+    //
+    // no_print = No imprime el subtotal.
+    //
+    // type = gross: Solo devuelve el campo de total bruto
+    //        net:   Solo devuelve el campo de total neto
+    //        both:  Devuelve ambos totales
+    //        none:  No devuelve nada
+    //
+    this._subtotal_fiscal_ticket = function(
+            print,
+            type,
+            callback) {
+        var ext = (no_print        && 0x0001) |
+                  (type == 'gross' && 0x0004) |
+                  (type == 'net'   && 0x0008) |
+                  (type == 'both'  && 0x000A);
+        self.command(
+                'subtotal_fiscal_ticket',
+                pack("<SW_W>*", sequence++, 0x0B03, ext),
+                '<SW_W__N_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'gross',
+                 'net'],
+                callback);
+    }
+
+    // 6.7.4 Descuentos/Recargos (0B 04)
+    //
+    // Aplica un descuento o recargo global a los montos facturados en el tique-factura o nota de débito fiscal.
+    //
+    // type = discount: Descuento
+    //        charge: recargo
+    //
+    // description = Descripción
+    //
+    // amount = Monto de descuento/recargo
+    // 
+    this._discount_charge_fiscal_ticket = function(
+            type,
+            callback) {
+        var ext = (type == 'discount' && 0x0000) |
+                  (type == 'charge'   && 0x0001);
+        self.command(
+                'discount_charge_fiscal_ticket',
+                pack("<SW_W_R_NA2>*", sequence++, 0x0B04, ext,
+                    description,
+                    amount),
+                '<SW_W__N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'subtotal'],
+                callback);
+    }
+    
+    // 6.7.5 Pagos (0B 05)
+    //
+    // Aplica un pago al tique-factura o nota de débito fiscal en proceso de emisión.
+    //
+    // null_pay = Anulación de pago.
+    //
+    // no_include_cash_count = No incluye pago en arqueo de pagos.
+    //
+    // card_pay = Pago con tarjeta.
+    //
+    // extra_description = Descripción extra del pago
+    //
+    // description = Descripción del pago
+    //
+    // amount = Monto de pago
+    //
+    this._pay_fiscal_ticket = function(
+            type,
+            callback) {
+        var ext = (null_pay                && 0x0001) |
+                  (no_include_cash_count   && 0x0002) |
+                  (card_pay                && 0x0004);
+        self.command(
+                'pay_fiscal_ticket',
+                pack("<SW_W_R_R_NA2>*", sequence++, 0x0B05, ext,
+                    extra_description,
+                    description,
+                    amount),
+                '<SW_W__N_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'result',
+                 'change'],
+                callback);
+    }
+
+    // 6.7.6 Cerrar (0B 06)
+    //
+    // cut_paper = Cortar papel.
+    //
+    // electronic_answer = Devuelve respuesta electrónica.
+    //
+    // print_return_attribute = Imprime “Su Vuelto” con atributos.
+    //
+    // current_account_automatic_pay = Utiliza pago automático como cuenta corriente.
+    //
+    // print_quantities = Imprimir Cantidad de unidades.
+    //
+    // tail_no = Número de línea de cola de reemplazo #1
+    //
+    // tail_text = Descripción de reemplazo #1
+    //
+    // tail_no_2 = Número de línea de cola de reemplazo #2
+    //
+    // tail_text_2 = Descripción de reemplazo #2
+    //
+    // tail_no_3 = Número de línea de cola de reemplazo #3
+    //
+    // tail_text_3 = Descripción de reemplazo #3
+    //
+    // RETURN:
+    //
+    // printerStatus = estado de la impresora.
+    //
+    // fiscalStatus = estado fiscal del equipo.
+    //
+    // result = resultado del comando.
+    //
+    // document_number = Número del tique-factura o nota de débito fiscal
+    //
+    // document_type = Tipo de tique-factura o nota de débito (‘A’, ‘B’, ‘C’)
+    //
+    // document_amount = Monto total del tique-factura o nota de débito fiscal
+    //
+    // document_vat = Monto total de IVA del tique-factura o nota de débito fiscal
+    //
+    // document_return = Vuelto final
+    //
+    this._close_fiscal_ticket = function(
+            cut_paper,
+            electronic_answer,
+            print_return_attribute,
+            current_account_automatic_pay,
+            print_quantities,
+            tail_no,
+            tail_text,
+            tail_no_2,
+            tail_text_2,
+            tail_no_3,
+            tail_text_3,
+            callback) {
+        var ext = (cut_paper                             && 0x0001) |
+                  (electronic_answer                     && 0x0002) |
+                  (print_return_attribute                && 0x0004) |
+                  (current_account_automatic_pay         && 0x0010) |
+                  (print_quantities                      && 0x0100);
+        self.command(
+                'close_fiscal_ticket',
+                pack("<SW_W_N30_R_N30_R_N30_R>*", sequence++, 0x0B06, ext,
+                        tail_no,
+                        tail_text,
+                        tail_no_2,
+                        tail_text_2,
+                        tail_no_3,
+                        tail_text_3),
+                '<SW_W__W_N_L_N_N_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'document_number',
+                 'document_type',
+                 'document_amount',
+                 'document_vat',
+                 'document_return'],
+                callback);
+    }
+
+    //
+    // 6.7.7 Cancelar (0B 07)
+    //
+    // Realiza la cancelación del tique-factura o nota de débito fiscal.
+    //
+    this._cancel_fiscal_ticket = function(callback) {
+        self.command(
+                'cancel_fiscal_ticket',
+                pack("<SW_W>*", sequence++, 0x0B06, 0x0000),
+                '<SW_W__N_L>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'document_number',
+                 'document_type'],
                 callback);
     }
 
@@ -1053,6 +1440,12 @@ var epson = function(device) {
     // Document information
 
     // Fiscal Journal
+
+    // API: Return counters
+    this.get_counters = function(callback) {
+        var self = this;
+        self._get_counters(callback);
+    }
     
     // API: Open Fiscal Journal
     this.open_fiscal_journal = function(callback) {
@@ -1076,14 +1469,22 @@ var epson = function(device) {
     }
 
     // API: Generate ticket.
+    this.open_fiscal_ticket  = function(options, callback) {
+    };
+
+    this.add_fiscal_item     = function(options, callback) {
+    };
+
+    this.close_fiscal_ticket = function(options, callback) {
+    };
 };
 
-function epson_open(device, callback) {
+function epson_ar_open(device, callback) {
     console.debug("EPSON: Constructor");
     chrome.usb.claimInterface(device, 0, function() {
         chrome.usb.claimInterface(device, 1, function() {
             console.debug("EPSON: Device claimed");
-            callback(new epson(device));
+            callback(new epson_ar(device));
         });
     });
 };
