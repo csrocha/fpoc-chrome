@@ -14,9 +14,8 @@ uniqueId = function(prefix) {
 //
 // Class to create a session associated to a server.
 //
-oerpSession = function(sid, server, session_id) {
+oerpSession = function(server, session_id) {
 
-    this.sid = sid;
     this.server = server;
     this.session_id = session_id;
     this.id = uniqueId('p');
@@ -60,7 +59,7 @@ oerpSession = function(sid, server, session_id) {
                     if (self.onmessage) {
                         self.onmessage("in", ev.type);
                     }
-                    event_function_map[ev.type](self, event_data, local_data, return_callback);
+                    event_function_map[ev.type](self, ev.lastEventId, event_data, local_data, return_callback);
                 };
                 receptor.addEventListener(event_key, event_callback, false);
                 self.receptor.push(receptor);
@@ -75,7 +74,11 @@ oerpSession = function(sid, server, session_id) {
     this.add_printer = function(printer, event_function_map, callback) {
         var self = this;
 
-        if (printer.is_connected || !self.uid) return;
+        if (printer.is_connected || !self.uid) {
+            callback();
+            return;
+        }
+
         printer.is_connected = true;
 
         var return_callback = function(mess, ev) {
@@ -117,7 +120,6 @@ oerpSession = function(sid, server, session_id) {
     this._onexpiration = function(event) {
         var self = this;
         self.session_id = null;
-        self.sid = null;
         if (self.onexpired) self.onexpired(event);
     };
 
@@ -128,10 +130,9 @@ oerpSession = function(sid, server, session_id) {
         var xhr = new XMLHttpRequest();
         var self=this;
         var args = "?jsonp=_&id="+this.id
-        if (self.session_id && self.sid) {
-            //args = args + "&session_id=" + self.session_id + "&sid=" + self.sid;
-            params.session_id = self.session_id;
-        }
+        //if (self.session_id) {
+        //    params.session_id = self.session_id;
+        //}
         var request = { 'params': params };
         args = args + "&r="+encodeURIComponent(JSON.stringify(request || {}));
 
@@ -145,14 +146,19 @@ oerpSession = function(sid, server, session_id) {
         };
         xhr.onload = function(event) { 
             r = event.currentTarget.response;
-            response = JSON.parse(r.substring(2,r.length-2));
+            try {
+                response = JSON.parse(r.substring(2,r.length-2));    
+            }
+            catch(err) {
+                self.onerror(event);
+                callback("error", null);
+            }
             if (response.error) {
                 console.error(response.error);
                 callback("error", response.error);
                 if (response.error.code = 300) self._onexpiration(event);
             } else {
                 self.id = response.id || self.id;
-                self.sid = response.httpsessionid;
                 if (self.onmessage) {
                     self.onmessage("in", response.result);
                 }
@@ -181,7 +187,7 @@ oerpSession = function(sid, server, session_id) {
     this.get_session_info = function(callback) {
         var self=this;
         var old_uid = self.uid;
-        this.rpc('/web/session/get_session_info', { 'session_id': self.session_id }, function(mess, result){
+        this.rpc('/web/session/get_session_info', {  }, function(mess, result){
             if (mess == "done") {
                 self.db = result.db;
                 self.username = result.username;
@@ -242,7 +248,6 @@ oerpSession = function(sid, server, session_id) {
         var self = this;
         var params = {};
         var _callback = function(mess, result) {
-            self.server = null;
             self.username = null;
             self.uid = null;
             self.session = null;
@@ -268,14 +273,14 @@ oerpSession = function(sid, server, session_id) {
     //
     // Publish printers.
     //
-    this.send_info = function(printers, callback) {
+    this.send_info = function(data, callback) {
         var self = this;
         var _callback = function(mess, result) {
             if (callback) {
                 callback(mess, result);
             };
         };
-        this.rpc("/fp/push", printers, _callback);
+        this.rpc("/fp/push", data, _callback);
     };
 
     //
@@ -307,6 +312,7 @@ oerpSession = function(sid, server, session_id) {
         if (this.session_id) {
             this.get_session_info(_callback);
         } else {
+            this.onerror();
             _callback("notlogin", this);
         };
     };
@@ -337,10 +343,11 @@ oerpSession = function(sid, server, session_id) {
     this.update = function(callback) {
         var self = this;
 
+        console.debug('[SES] Updating printers.');
         // Take printers
         var push_printers = function(keys, printers, _callback) {
-            if (keys.length && self.uid) {
-                self._call('fiscal_printer.fiscal_printer', 'search',
+            if (session_id && keys.length && self.uid) {
+                self._call('fpoc.fiscal_printer', 'search',
                         [ [['name','in',keys]] ], {}, function(e, fps) {
                             if (e == 'error') {
                                 async.each(takeKeys(self.printers), function(key, __callback) {
@@ -350,7 +357,7 @@ oerpSession = function(sid, server, session_id) {
                             } else {
                                 var d = new Date();
                                 async.each(fps, function(fp, __callback) {
-                                    self._call('fiscal_printer.fiscal_printer', 'write',
+                                    self._call('fpoc.fiscal_printer', 'write',
                                         [ fp, {
                                             'session_id':self.session_id,
                                             'lastUpdate': d,
@@ -368,16 +375,16 @@ oerpSession = function(sid, server, session_id) {
             var keys = takeKeys(printers);
             push_printers(keys, printers, function() {
                 async.each(keys, function(printer, __callback) {
-                    console.log("Printers to publish:", printer);
+                    console.debug("[SES] Printers to publish:", printer);
                     self.add_printer(printers[printer], printer_server_events, __callback);
                 }, callback);
             });
         }
-        
+
         self.clean(function(){
             query_local_printers( publish_printers, self.onchange );
         });
-    }
+    };
 };
 
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

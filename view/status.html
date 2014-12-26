@@ -2,47 +2,93 @@
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="status.css">
+    <link rel="stylesheet" type="text/css" href="../lib/font-awesome-4.2.0/css/font-awesome.css">
   </head>
   <body>
+    <div id="overlay"></div>
     <div id="alert"></div>
-    <div id="disconnected">
-	    <h1>Login</h1>
-	    <p>Application is disconnected. Please login.</p>
-	    <div id="form">
-		    <ul>
-			    <li>URL</li>
-			    <li><input type="text" name="server"/></li>
-			    <li>Database</li>
-			    <li><select name="database"/></select></li>
-			    <li>User</li>
-			    <li><input type="text" name="login"/></li>
-			    <li>Password</li>
-			    <li><input type="text" name="password"/></li>
-			    <li><button name="login">Login</button></li>
+    <div id="url" class="state_url">
+	    <h1>
+            <span class="fa-stack fa-lg">
+              <i class="fa fa-rocket fa-stack-1x"></i>
+              <i class="fa fa-ban fa-stack-2x text-danger hidden"></i>
+            </span>
+            Connection setup</h1>
+	    <p>Use the same Internet Address that you use to access to Odoo.</p>
+        <datalist id="KnownServers">
+          <option value="http://localhost:8069/" />
+        </datalist>
+        <div class="margin-bottom">
+            <div class="input-group margin-bottom-sm">
+                <span class="input-group-addon"><i class="fa fa-cloud fa-fw"></i></span>
+                <input class="form-control" type="url" name="server" placeholder="http://localhost:8069"/>
+            </div>
+        </div>
+        <div class="margin-bottom">
+            <div>
+                <button class="op" name="select" type="submit">Connect</button>
+            </div>
+        </div>
+    </div>
+    <div id="disconnected" class="state_login">
+	    <h1>
+            <span class="fa-stack fa-lg">
+              <i class="fa fa-info fa-stack-1x"></i>
+              <i class="fa fa-ban fa-stack-2x text-danger hidden"></i>
+            </span>
+            Log in</h1>
+	    <p>Use your user and password to publish your local printers to the selected database.</p>
+        <div class="margin-bottom">
+            <div class="input-group margin-bottom-sm">
+                <span class="input-group-addon"><i class="fa fa-database fa-fw"></i></span>
+                <select class="form-control" name="database"/></select>
+            </div>
+            <div class="input-group margin-bottom-sm">
+                <span class="input-group-addon"><i class="fa fa-user fa-fw"></i></span>
+			    <input class="form-control" type="text" name="login" placeholder="User"/>
+            </div>
+            <div class="input-group margin-bottom-sm">
+                <span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>
+			    <input class="form-control" type="password" name="password" password="1" placeholder="Password"/>
+            </div>
+        </div>
+        <div class="margin-bottom">
+            </div>
+			    <button class="op" name="login" type="submit">Login</button>
+			    <button class="op" name="cancel">Cancel</button>
 		    </ul>
 	    </div>
     </div>
-    <div id="connected">
-	    <h1>Connected</h1>
+    <div id="connected" class="state_online">
+	    <h1>
+            <span class="fa-stack fa-lg">
+              <i class="fa fa-cloud fa-stack-2x"></i>
+              <i class="fa fa-print fa-stack-1x reverse"></i>
+            </span>
+            Connected</h1>
         <p>You are logged as <b id="login"></b> on <a target="_blank" id="server">server</a>, using database <b id="database"></b>.</p>
-	    <button>Logout</button>
+	    <button class="op" name="logout">Logout</button>
     </div>
     <div id="printers">
-	    <h1>Local Printers</h1>
-	    <table>
-		    <tr>
-                <th>Printer</th>
-                <th>Operations</th>
-            </tr>
+	    <h1>
+            <span class="fa-stack fa-lg">
+              <i class="fa fa-print fa-stack-1x"></i>
+              <i class="fa fa-ban fa-stack-2x text-danger no_local_printers"></i>
+            </span>
+            Local Printers</h1>
+        <div class="no_local_printers">
+            <p>Not local printer available</a>
+        </div>
+	    <table class="local_printers">
 	    </table>
     </div>
-    <div>
+    <div id="logging" style="display:none">
 	    <h1>Logging</h1>
         <div id="logger">
         </div>
     </div>
   </body>
-  <script src="../src/epson.js"></script>
+  <script src="../src/epson_ar.js"></script>
   <script src="../src/async.js"></script>
   <script src="../src/tools.js"></script>
   <script src="../src/oerp.js"></script>

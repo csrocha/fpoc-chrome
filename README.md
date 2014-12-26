@@ -1,7 +1,7 @@
-fp-chrome-app-oerp
-==================
+# Fiscal Printer on the Cloud
+## fp-chrome-app-oerp
 
-Fiscal Printer Chrome Application for OpenERP
+Cliente de impresora fiscales para la Nube.
 
 List of Supported Printers
 ==========================

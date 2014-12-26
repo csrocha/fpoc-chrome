@@ -1,16 +1,21 @@
 {
   "manifest_version": 2,
-
-  "name": "Fiscal Printer Chrome Application",
-  "description": "This app publish local fiscal printers into a local network and let to webpages to interact with them.",
-  "version": "1.0",
-
+  "name": "Fiscal Printer on the Cloud",
+  "short_name": "FPoC",
+  "version": "0.0.5",
+  "default_locale": "es",
+  "description": "This app publish local fiscal printers into the cloud for remote access and control.",
+  "icons": { "16": "img/icon-16px.png", "128": "img/icon-128px.png" },
+  "author": "Cristian S. Rocha",
   "app": {
 	  "background": {
 		  "scripts": [
 			  "test/test_001.js",
 			  "test/test_002.js",
+			  "test/test_003.js",
 			  "src/async.js",
+			  "src/serial.js",
+			  "src/usb.js",
 			  "src/bundle.js",
 			  "src/oerp.js",
 			  "src/epson_ar.js",
@@ -19,18 +24,17 @@
 			  "src/background.js" ]
 	  }
   },
-
   "externally_connectable": {
      "matches": [
          "*://localhost:*/*",
          "*://serverhost:*/*"
      ]
   },
-
   "permissions": [
      "*://*/*",
      "storage",
      "usb",
+     "serial",
      { "usbDevices": [
 	     { "vendorId": 1208, "productId": 514 }
 	     ] },
@@ -38,7 +42,5 @@
 	     "tcp-connect",
 	     "tcp-listen"
 	     ] }
-  ],
-
-  "icons": { "16": "img/icon-16px.png", "128": "img/icon-128px.png" }
+  ]
 }

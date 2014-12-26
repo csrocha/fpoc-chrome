@@ -1,9 +1,3 @@
-function pad(n, width, z) {
-  z = z || '0';
-  n = n + '';
-  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-}
-
 var result_messages = {
 	0x0000:"Resultado exitoso",
 	0x0001:"Error interno",
@@ -142,19 +136,6 @@ var R04 = 0x1F
 
 ToEscape = [ STX, ETX, R01, ESC, FLD, R02, R03, R04 ];
 
-function ab2str(buf) {
-  return String.fromCharCode.apply(null, new Uint8Array(buf));
-}
-
-function str2ab(str) {
-  var buf = new ArrayBuffer(str.length); // 1 bytes for each char. Only ASCII.
-  var bufView = new Uint8Array(buf);
-  for (var i=0, strLen=str.length; i<strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-  return buf;
-}
-
 extend = function(destination, source) {
   for (var property in source) {
       if (source.hasOwnProperty(property)) {
@@ -225,12 +206,11 @@ function pack() {
         '_': FLD,
     };
     for (i=0, j=1; i < types.length; i++) {
-        console.log("T:", types[i])
         if (types[i] in SymbolMap) {
             value = (new Uint8Array([SymbolMap[types[i]]])).buffer;
         } else
         if (['S'].indexOf(types[i]) >= 0) {
-            value = (new Uint8Array([0x81 + fields[j++]])).buffer;
+            value = (new Uint8Array([0x81 + (fields[j++] % 127)])).buffer;
         } else
         if (['W'].indexOf(types[i]) >= 0) {
             value = new ArrayBuffer(2);
@@ -250,7 +230,6 @@ function pack() {
             } else {
                 value = str2ab(prevalue.join(""));
             }
-            console.log("PV:", fields[j-1], "->", ab2str(value))
             value = bufEscape(value);
         } else
         if (['A', 'L', 'B', 'P', 'H', 'R', 'Y', 'B', 'D', 'T'].indexOf(types[i]) >= 0) {
@@ -416,63 +395,57 @@ var printerStateString = function(data) {
         strReceiptState[s.receiptState]
 };
 
-var epson_ar = function(device) {
-    var sequence = 0;
+var epson_ar = function(interface, sequence) {
+    var sequence = typeof sequence !== 'undefined' ? sequence : 0;
     var self = this;
+    var ackbuf = new Uint8Array([0x06]);
 
-    this.protocol = 'epson';
-    this.device = device;
+    this.protocol = 'epson_ar';
+    this.interface = interface;
+    this.busy = 0;
 
     this.sendACK = function(callback) {
-        var buf = new Uint8Array([0x06]);
-        chrome.usb.bulkTransfer(self.device,
-            {   'direction': 'out',
-                'endpoint': 0x01,
-                'data': buf.buffer, 
-            }, function(info) {
-                callback(info.resultCode == 0);
-            });
+        this.interface.send(ackbuf.buffer, function(info) { callback(info.resultCode == 0); });
     };
 
     this.waitResponse = function(types, fields, callback) {
         var local_callback = function(info) {
                 if (info && info.resultCode == 0) {
+                    var dv = new DataView(info.data);
                     if (info.data.byteLength==0) {
                         self.waitResponse(types, fields, callback);
                     } else 
-                    if (info.data.byteLength==1 && (new Uint8Array(info.data))[0] == 0x15) {
+                    if (info.data.byteLength==1 && dv.getUint8(0) == 0x15) {
                         console.error("USB-NACK");
-                        console.error("Recovering");
                         self.sendACK(self.waitResponse.bind(self, types, fields, callback));
+                        console.error("Recovering");
                         sequence = 0;
+                        callback({'error': 'NACK'});
                     } else
-                    if (info.data.byteLength==1 && (new Uint8Array(info.data))[0] == 0x06) {
+                    if (info.data.byteLength==1 && dv.getUint8(0) == 0x06) {
                         self.sendACK(self.waitResponse.bind(self, types, fields, callback));
                     } else 
-                    if (info.data.byteLength>1 && (new Uint8Array(info.data))[1] == 0x80) {
-                        self.waitResponse(types, fields, callback);
+                    if (info.data.byteLength>1 && dv.getUint8(1) == 0x80) {
+                        self.sendACK(function(res){
+                            self.waitResponse(types, fields, callback);
+                        });
                     } else
                     if (info.data.byteLength>1) {
-                        callback(unpack(types, fields, info.data));
+                        self.sendACK(function(res){
+                            callback(unpack(types, fields, info.data));
+                        });
                     };
+                } else {
+                    callback();
                 };
             };
-        chrome.usb.bulkTransfer(self.device,
-            {   'direction': 'in',
-                'endpoint': 0x82,
-                'length': 2048
-            }, local_callback);
+        self.interface.receive(local_callback);
     };
 
     this.close = function(callback) {
-        var closed = function() {
+        self.interface.close(function() {
             console.debug("EPSON: Device closed");
             if (callback) callback();
-        };
-        chrome.usb.releaseInterface(self.device, 1, function() {
-            chrome.usb.releaseInterface(self.device, 0, function() {
-                chrome.usb.closeDevice(self.device, closed);
-            });
         });
     };
 
@@ -490,15 +463,19 @@ var epson_ar = function(device) {
         'slip'  : 1,
     };
 
-    this.alive = function(true_callback, false_callback) {
-        chrome.usb.listInterfaces(self.device, function(res) { // Check if device still alive.
-            if(res != null) { true_callback() } else { false_callback(); };
-        });
-    };
-
     this.command = function(name, in_pack, out_types, out_dict, callback) {
         var self=this;
-        console.debug("EPSON:command:", name);
+        var callback = callback;
+        
+        if (self.busy) {
+            setTimeout(function() { 
+                self.command(name, in_pack, out_types, out_dict, callback);
+            }, 5);
+            return;
+        } else {
+            self.busy++;
+        }
+
         var local_callback = function(response) {
             if (response && response.printerStatus != null) { 
                 extend(response, printerState(response.printerStatus));
@@ -511,22 +488,22 @@ var epson_ar = function(device) {
             if (response && response.result) {
                 response.strResult = result_messages[response.result];
             };
+            self.busy--;
             callback(response);
         };
-        this.alive(function() {
-            chrome.usb.bulkTransfer(self.device, // Send command.
-                {   'direction': 'out',
-                    'endpoint': 0x01,
-                    'data': in_pack
-                }, function(info) {
-                    if (info && info.resultCode == 0)
-                        self.waitResponse(out_types, out_dict, local_callback);
-                    else
-                        local_callback(null);
+        self.interface.alive(
+                function() {
+                    var __callback__ = function(info) {
+                        if (info && info.resultCode == 0) {
+                            self.waitResponse(out_types, out_dict, local_callback);
+                        } else {
+                            local_callback();
+                        }
+                    };
+                    self.interface.send(in_pack, __callback__);
+                }, function() {
+                    local_callback();
                 });
-            }, function() {
-                local_callback(null);
-            });
     };
 
     // 6.1.1 Obtener Estado (00 01)
@@ -715,17 +692,17 @@ var epson_ar = function(device) {
     };
     
     // 6.3.9 Obtener Líneas de Información del Establecimiento (05 0F)
-    this.get_pos_info = function(line, value, callback) {
+    this.get_pos_info = function(line, callback) {
         self.command(
                 'get_pos_info',
-                pack("<SW_W_R>*", sequence++, 0x050F, line),
+                pack("<SW_W>*", sequence++, 0x050F, line),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'value'],
                 callback);
     };
 
     // 6.3.10 Iniciar Carga de Logo de Usuario (05 30)
-    this.init_load_logo = function(width, height, quantity, callback) {
+    this._init_load_logo = function(width, height, quantity, callback) {
         self.command(
                 'init_load_logo',
                 pack("<SW_W_W_W_N10>*", sequence++, 0x0530, 0x0000,
@@ -736,7 +713,7 @@ var epson_ar = function(device) {
     };
 
     // 6.3.11 Enviar Datos de Logo del Usuario (05 31)
-    this.load_logo = function(bitmap, callback) {
+    this._load_logo = function(bitmap, callback) {
         self.command(
                 'logo_load',
                 pack("<SW_W_B>*", sequence++, 0x0531, 0x0000,
@@ -747,7 +724,7 @@ var epson_ar = function(device) {
     };
 
     // 6.3.12 Terminar Carga de Logo del Usuario (05 32)
-    this.finish_load_logo = function(bitmap, callback) {
+    this._finish_load_logo = function(callback) {
         self.command(
                 'finish_logo_load',
                 pack("<SW_W>*", sequence++, 0x0532, 0x0000),
@@ -757,9 +734,9 @@ var epson_ar = function(device) {
     };
 
     // 6.3.13 Cancelar Carga de Logo del Usuario (05 33)
-    this.finish_load_logo = function(bitmap, callback) {
+    this._cancel_load_logo = function(callback) {
         self.command(
-                'finish_logo_load',
+                'cancel_logo_load',
                 pack("<SW_W>*", sequence++, 0x0533, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -767,7 +744,7 @@ var epson_ar = function(device) {
     };
 
     // 6.3.14 Eliminar Logo del Usuario (05 34)
-    this.delete_logo = function(bitmap, callback) {
+    this._delete_logo = function(callback) {
         self.command(
                 'delete_logo',
                 pack("<SW_W>*", sequence++, 0x0534, 0x0000),
@@ -982,6 +959,12 @@ var epson_ar = function(device) {
 
     // 6.7.2 Item (0B 02)
     //
+    // Realiza la emisión de ítem de venta o la devolución de un ítem en forma total o parcial. Acumula los
+    // importes facturados en la memoria de trabajo y calcula los impuestos de acuerdo a la tasa de
+    // impuestos enviada. Permite la emisión de ítems de bonificación y su correspondiente anulación.
+    //
+    // INPUT
+    //
     // item_action = sale_item: Item de venta.
     //               cancel_sale_item: Anulación de ítem de venta.
     //               return_can: Item de retorno de envases.
@@ -990,40 +973,28 @@ var epson_ar = function(device) {
     //               cancel_return_item: Anulación de ítem de retorno.
     //               discount_item: Item de descuento.
     //               cancel_discount_item: Anulación de ítem de descuento.
-    //
     // as_gross = Considerar parámetros como montos Brutos.
-    //
     // send_subtotal = Envía campo Subtotal parcial del tique.
-    //
     // check_item = Marcar ítem.
-    //
     // collect_type = q: Contabilizar ítem de venta igual a la cantidad Q.
     //                unit: Contabilizar ítem de venta como cantidad unitaria (bulto).
     //                none: No contabilizar ítem de venta en cantidad de unidades.
-    //
     // large_label = Imprime leyenda larga.
-    //
     // first_line_label = Imprime leyenda en la primera línea de descripción.
-    //
     // description = Descripción extra #1
-    //
     // description_2 = Descripción extra #2
-    //
     // description_3 = Descripción extra #3
-    //
     // description_4 = Descripción extra #4
-    //
     // item_description = Descripción del ítem
-    //
     // quantity = Cantidad
-    //
     // unit_price = Precio unitario
-    //
     // vat_rate = Tasa de IVA
-    //
     // fixed_taxes = Impuestos internos fijos
-    //
     // taxes_rate = Coeficiente de impuestos internos porcentuales
+    //
+    // OUTPUT
+    //
+    // subtotal = Subtotal parcial del tique-factura o tique-nota de débito.
     //
     this._item_fiscal_ticket = function(
             item_action,
@@ -1083,12 +1054,18 @@ var epson_ar = function(device) {
     //
     // Retorna el subtotal facturado dentro del tique-factura o nota de débito fiscal.
     //
-    // no_print = No imprime el subtotal.
+    // INPUT
     //
+    // no_print = No imprime el subtotal.
     // type = gross: Solo devuelve el campo de total bruto
     //        net:   Solo devuelve el campo de total neto
     //        both:  Devuelve ambos totales
     //        none:  No devuelve nada
+    //
+    // OUTPUT
+    //
+    // gross = Subtotal parcial del tique-factura o nota de débito ( bruto )
+    // net = Subtotal parcial del tique-factura o nota de débito ( neto )
     //
     this._subtotal_fiscal_ticket = function(
             print,
@@ -1112,13 +1089,17 @@ var epson_ar = function(device) {
     //
     // Aplica un descuento o recargo global a los montos facturados en el tique-factura o nota de débito fiscal.
     //
+    // INPUT
+    //
     // type = discount: Descuento
     //        charge: recargo
-    //
     // description = Descripción
-    //
     // amount = Monto de descuento/recargo
     // 
+    // OUTPUT
+    //
+    // subtotal = Subtotal parcial del tique-factura o nota de débito.
+    //
     this._discount_charge_fiscal_ticket = function(
             type,
             callback) {
@@ -1139,24 +1120,31 @@ var epson_ar = function(device) {
     //
     // Aplica un pago al tique-factura o nota de débito fiscal en proceso de emisión.
     //
-    // null_pay = Anulación de pago.
+    // INPUT
     //
-    // no_include_cash_count = No incluye pago en arqueo de pagos.
-    //
-    // card_pay = Pago con tarjeta.
-    //
+    // Aplica un pago al tique-factura o nota de débito fiscal en proceso de emisión.
+    // type =
+    //   null_pay = Anulación de pago.
+    //   no_include_cash_count = No incluye pago en arqueo de pagos.
+    //   card_pay = Pago con tarjeta.
     // extra_description = Descripción extra del pago
-    //
     // description = Descripción del pago
-    //
     // amount = Monto de pago
+    //
+    // RETURN
+    //
+    // result = Monto restante por pagar
+    // change = Monto de vuelto
     //
     this._pay_fiscal_ticket = function(
             type,
+            extra_description,
+            description,
+            amount,
             callback) {
-        var ext = (null_pay                && 0x0001) |
-                  (no_include_cash_count   && 0x0002) |
-                  (card_pay                && 0x0004);
+        var ext = (type == 'null_pay'                && 0x0001) |
+                  (type == 'no_include_cash_count'   && 0x0002) |
+                  (type == 'card_pay'                && 0x0004);
         self.command(
                 'pay_fiscal_ticket',
                 pack("<SW_W_R_R_NA2>*", sequence++, 0x0B05, ext,
@@ -1172,44 +1160,31 @@ var epson_ar = function(device) {
 
     // 6.7.6 Cerrar (0B 06)
     //
+    // Realiza el cierre del tique-factura o nota de débito fiscal almacenando los datos de la transacción en la memoria de transacciones.
+    //
+    // INPUT
+    //
     // cut_paper = Cortar papel.
-    //
     // electronic_answer = Devuelve respuesta electrónica.
-    //
     // print_return_attribute = Imprime “Su Vuelto” con atributos.
-    //
     // current_account_automatic_pay = Utiliza pago automático como cuenta corriente.
-    //
     // print_quantities = Imprimir Cantidad de unidades.
-    //
     // tail_no = Número de línea de cola de reemplazo #1
-    //
     // tail_text = Descripción de reemplazo #1
-    //
     // tail_no_2 = Número de línea de cola de reemplazo #2
-    //
     // tail_text_2 = Descripción de reemplazo #2
-    //
     // tail_no_3 = Número de línea de cola de reemplazo #3
-    //
     // tail_text_3 = Descripción de reemplazo #3
     //
-    // RETURN:
+    // RETURN
     //
     // printerStatus = estado de la impresora.
-    //
     // fiscalStatus = estado fiscal del equipo.
-    //
     // result = resultado del comando.
-    //
     // document_number = Número del tique-factura o nota de débito fiscal
-    //
     // document_type = Tipo de tique-factura o nota de débito (‘A’, ‘B’, ‘C’)
-    //
     // document_amount = Monto total del tique-factura o nota de débito fiscal
-    //
     // document_vat = Monto total de IVA del tique-factura o nota de débito fiscal
-    //
     // document_return = Vuelto final
     //
     this._close_fiscal_ticket = function(
@@ -1254,10 +1229,17 @@ var epson_ar = function(device) {
     //
     // Realiza la cancelación del tique-factura o nota de débito fiscal.
     //
+    // INPUT
+    //
+    // RETURN
+    //
+    // document_number = Número del tique factura o nota de débito.
+    // document_type = Tipo de tique-factura o nota de débito (‘A’, ‘B’, ‘C’)
+    //
     this._cancel_fiscal_ticket = function(callback) {
         self.command(
                 'cancel_fiscal_ticket',
-                pack("<SW_W>*", sequence++, 0x0B06, 0x0000),
+                pack("<SW_W>*", sequence++, 0x0B07, 0x0000),
                 '<SW_W__N_L>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'document_number',
@@ -1301,23 +1283,23 @@ var epson_ar = function(device) {
         'footerLine 5': function(callback){ self.get_footer_lines(5, function(response) { callback(response && response.text); }); },
         'footerLine 6': function(callback){ self.get_footer_lines(6, function(response) { callback(response && response.text); }); },
         'footerLine 7': function(callback){ self.get_footer_lines(7, function(response) { callback(response && response.text); }); },
+
+        'commercial_address_1': function(callback) { self.get_pos_info(0, function(response) { callback(response && response.value); }); },
+        'commercial_address_2': function(callback) { self.get_pos_info(1, function(response) { callback(response && response.value); }); },
+        'commercial_address_3': function(callback) { self.get_pos_info(2, function(response) { callback(response && response.value); }); },
+
+        'fiscal_address_1': function(callback) { self.get_pos_info(3, function(response) { callback(response && response.value); }); },
+        'fiscal_address_2': function(callback) { self.get_pos_info(4, function(response) { callback(response && response.value); }); },
+        'fiscal_address_3': function(callback) { self.get_pos_info(5, function(response) { callback(response && response.value); }); },
+
+        'iibb_1': function(callback) { self.get_pos_info(6, function(response) { callback(response && response.value); }); },
+        'iibb_2': function(callback) { self.get_pos_info(7, function(response) { callback(response && response.value); }); },
+        'iibb_3': function(callback) { self.get_pos_info(8, function(response) { callback(response && response.value); }); },
+
+        'activity_init': function(callback) { self.get_pos_info(9, function(response) { callback(response && response.value); }); },
     };
 
     this.write_operation = {
-        'date':         function(value_, callback){
-            self.get_datetime(function(response) {
-                var date = value_,
-                    time = response.time;
-                    self.set_datetime(date, time, function(response) { callback(response); });
-            });
-        },
-        'time':         function(value_, callback){
-            self.get_datetime(function(response) {
-                var date = response.date,
-                    time = value_;
-                    self.set_datetime(date, time, function(response) { callback(response); });
-            });
-        },
         'headerLine 1': function(value_, callback){ self.set_header_lines(1, value_, function(response) { callback(response); }); },
         'headerLine 2': function(value_, callback){ self.set_header_lines(2, value_, function(response) { callback(response); }); },
         'headerLine 3': function(value_, callback){ self.set_header_lines(3, value_, function(response) { callback(response); }); },
@@ -1332,7 +1314,21 @@ var epson_ar = function(device) {
         'footerLine 5': function(value_, callback){ self.set_footer_lines(5, value_, function(response) { callback(response); }); },
         'footerLine 6': function(value_, callback){ self.set_footer_lines(6, value_, function(response) { callback(response); }); },
         'footerLine 7': function(value_, callback){ self.set_footer_lines(7, value_, function(response) { callback(response); }); },
-    };
+
+        'commercial_address_1': function(value_, callback) { self.set_pos_info(0, value_, function(response) { callback(response); }); },
+        'commercial_address_2': function(value_, callback) { self.set_pos_info(1, value_, function(response) { callback(response); }); },
+        'commercial_address_3': function(value_, callback) { self.set_pos_info(2, value_, function(response) { callback(response); }); },
+
+        'fiscal_address_1': function(value_, callback) { self.set_pos_info(3, value_, function(response) { callback(response); }); },
+        'fiscal_address_2': function(value_, callback) { self.set_pos_info(4, value_, function(response) { callback(response); }); },
+        'fiscal_address_3': function(value_, callback) { self.set_pos_info(5, value_, function(response) { callback(response); }); },
+
+        'iibb_1': function(value_, callback) { self.set_pos_info(6, value_, function(response) { callback(response); }); },
+        'iibb_2': function(value_, callback) { self.set_pos_info(7, value_, function(response) { callback(response); }); },
+        'iibb_3': function(value_, callback) { self.set_pos_info(8, value_, function(response) { callback(response); }); },
+
+        'activity_init': function(value_, callback) { self.set_pos_info(9, value_, function(response) { callback(response); }); },
+     };
 
     //
     // Common API functions
@@ -1355,7 +1351,7 @@ var epson_ar = function(device) {
             callback();
         };
     };
-    
+   
     // API: OPERATION (?)
     this.read_attributes = function(callback) {
         var self = this;
@@ -1363,6 +1359,14 @@ var epson_ar = function(device) {
         var fields = {};
         var readonly = [];
         var attributes = {};
+
+        var do_response = function(response) {
+            var date = response.date;
+            var time = response.time;
+            fields['clock'] = "20"+date.slice(4,6)+"-"+date.slice(2,4)+"-"+date.slice(0,2)+" "+time.slice(0,2)+":"+time.slice(2,4)+":"+time.slice(4,6);
+            fields['printerStatus'] = 'Impresora: ' + response.strPrinterStatus + '\nFiscal: ' + response.strFiscalStatus;
+            callback({fields: fields, attributes: attributes, readonly: readonly});
+        };
 
         var read_fields = function(ks) {
             var field = ks.pop();
@@ -1375,13 +1379,7 @@ var epson_ar = function(device) {
                     read_fields(ks);
                 });
             } else {
-                self.get_datetime(function(response) {
-                    var date = response.date;
-                    var time = response.time;
-                    fields['clock'] = "20"+date.slice(4,6)+"-"+date.slice(2,4)+"-"+date.slice(0,2)+" "+time.slice(0,2)+":"+time.slice(2,4)+":"+time.slice(4,6);
-                    fields['printerStatus'] = 'Impresora: ' + response.strPrinterStatus + '\nFiscal: ' + response.strFiscalStatus;
-                    callback({fields: fields, attributes: attributes, readonly: readonly});
-                });
+                self.get_datetime(do_response);
             };
         };
 
@@ -1394,9 +1392,14 @@ var epson_ar = function(device) {
     // Status
     this.get_status = function(callback) {
         var self = this;
-        self._get_status(function(res) {
-            callback(res);
-        });
+        if (self.busy) {
+            callback({'status': 'busy'});
+        } else {
+            self._get_status(function(res) {
+                self._status = res;
+                callback(res);
+            });
+        }
     };
 
     // Tests
@@ -1404,24 +1407,54 @@ var epson_ar = function(device) {
     // API: Execute short test
     this.short_test = function(callback) {
         var self = this;
-        self._ripple_test(0, 10, function() {
-            callback();
+        self._ripple_test(0, 10, function(res) {
+            callback(res);
         });
     };
 
     // API: Execute large test
     this.large_test = function(callback) {
         var self = this;
-        self._print_diag_report(0, function() {
-            self._ripple_test(0, 10, function() {
-                self._print_technical_ticket(function() {
-                    callback();
+        self._print_diag_report(0, function(res) {
+            self._ripple_test(0, 10, function(res) {
+                self._print_technical_ticket(function(res) {
+                    callback(res);
                 });
             });
         });
     };
 
+    // Logo Control
+    this.load_logos = function(logos, callback) {
+        var self = this;
+        async.eachSeries(logos, function(item, __callback__) {
+            var size = item[0];
+            var data = _base64ToArrayBuffer(item[1]);
+            var maxsize = 1024;
+            var position = 0;
+            self._init_load_logo(size[0], size[1], 1, function(res) {
+                if (res.result != 0) { callback(res); return; }
+                async.whilst(
+                    function() { return position < data.byteLength; },
+                    function(___callback___) {
+                        self._load_logo(data.slice(position, maxsize), function(res) {
+                            position += maxsize;
+                            ___callback___();
+                        });
+                    },
+                    function() {
+                        self._finish_load_logo(__callback__);
+                    }
+                );
+            });
+        }, function() { callback({}); } )
+    };
+
     // Paper Control
+    this.remove_logos = function(logos, callback) {
+        var self = this;
+        self._delete_logo(callback);
+    };
 
     // API: Advance paper
     this.advance_paper = function(lines, callback) {
@@ -1468,25 +1501,122 @@ var epson_ar = function(device) {
         self._x_report(1,1,1,callback);
     }
 
-    // API: Generate ticket.
-    this.open_fiscal_ticket  = function(options, callback) {
+    // API: Make ticket.
+    this.make_fiscal_ticket  = function(options, ticket, callback) {
+        var self = this;
+
+        self._open_fiscal_ticket(
+			    options.triplicated || false,
+			    options.store_description || false,
+			    options.keep_description_attributes || false,
+                options.store_extra_descriptions || false,
+			    ticket.turist_ticket || false,
+			    ticket.debit_note || false,
+			    ticket.partner.name,
+			    ticket.partner.name_2 || "",
+			    ticket.partner.address,
+			    ticket.partner.address_2 || "",
+			    ticket.partner.address_3 || "",
+			    ticket.partner.document_type,
+			    ticket.partner.document_number,
+			    ticket.partner.responsability,
+			    ticket.related_document || "",
+			    ticket.related_document_2 || "",
+			    ticket.turist_check || "",
+	    function(res) {
+        if (res.result != 0) {
+            console.error(res.strResult);
+            callback({'error': 'Cant open ticket:' + res.strResult});
+        } else
+        async.eachSeries(ticket.lines,
+            function(line, _callback_){
+            self._item_fiscal_ticket(
+                    line.item_action || "sale_item",
+                    line.as_gross || false,
+                    line.send_subtotal || false,
+                    line.check_item || false,
+                    line.collect_type || 'q',
+                    line.large_label || "",
+                    line.firt_line_label || "",
+                    line.description || "",
+                    line.description_2 || "",
+                    line.description_3 || "",
+                    line.description_4 || "",
+                    line.item_description,
+                    line.quantity || 1,
+                    line.unit_price,
+                    line.vat_rate || 0,
+                    line.fixed_taxes || 0,
+                    line.taxes_rate || 0,
+                    function(res) {
+                        if (res.result != 0) {
+                            console.error(res.strResult);
+                            self._cancel_fiscal_ticket(callback);
+                        } else {
+                            _callback_();
+                        }
+                    }
+                );
+            }, function() {
+        async.eachSeries(ticket.payments,
+            function(pay, _callback_){
+            self._pay_fiscal_ticket(
+                    pay.type,
+                    pay.extra_description,
+                    pay.description,
+                    pay.amount,
+                    function(res) {
+                        if (res.result != 0) {
+                            console.error(res.strResult);
+                            self._cancel_fiscal_ticket(callback);
+                        } else {
+                            _callback_();
+                        }
+                    }
+                );
+            }, function() {
+            self._close_fiscal_ticket(
+                    options.cut_paper || true,
+                    options.electronic_answer || false,
+                    options.print_return_attribute || false,
+                    options.current_account_automatic_pay || false,
+                    options.print_quantities || false,
+                    options.tail_no || 0,
+                    options.tail_text || "",
+                    options.tail_no_2 || 0,
+                    options.tail_text_2 || "",
+                    options.tail_no_3 || 0,
+                    options.tail_text_3 || "",
+            function(res) {
+            if (res.result != 0) {
+                console.error(res.strResult);
+                self._cancel_fiscal_ticket(callback);
+            } else {
+                callback(res);
+            }
+            });
+	    });
+	    });
+	    });
     };
 
-    this.add_fiscal_item     = function(options, callback) {
-    };
-
-    this.close_fiscal_ticket = function(options, callback) {
+    // API: Cancel ticket.
+    this.cancel_fiscal_ticket  = function(callback) {
+        var self = this;
+        self._cancel_fiscal_ticket(1,1,1,callback);
     };
 };
 
-function epson_ar_open(device, callback) {
+function epson_ar_open(device, port, callback) {
     console.debug("EPSON: Constructor");
-    chrome.usb.claimInterface(device, 0, function() {
-        chrome.usb.claimInterface(device, 1, function() {
-            console.debug("EPSON: Device claimed");
-            callback(new epson_ar(device));
-        });
-    });
+    if (port == 'usb') {
+        var inter = new usb(device);
+        inter.open(function(inter){ callback(new epson_ar(inter)); });
+    } else 
+    if (port == 'serial') {
+        var inter = new serial(device);
+        inter.open(function(inter){ callback(new epson_ar(inter)); });
+    };
 };
 
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
