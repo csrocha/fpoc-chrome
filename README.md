@@ -1,14 +1,18 @@
 # ![Logo](https://raw.githubusercontent.com/csrocha/fp-chrome-app-oerp/master/img/icon-48px.png) Fiscal Printer on the Cloud
-## fp-chrome-app-oerp
 
-Cliente de impresora fiscales para la Nube.
+Fiscal Printer client to work in Internet without any drivers. Full implemented in javascript and HTMLv5.
 
-List of Supported Printers
-==========================
+## Introduction
 
-## Argentina
+This application is only works in Chrome as an Application. It's need USB and RS232 Serial permittions to access to local printers. Once you connect to a Server you can print Tickets, Open day and Close day from the Server. 
 
-### Valores de la columna _Estado_
+Actually the only supported server is Odoo, using the [odoo-fpoc](https://github.com/csrocha/odoo_fpoc) addon. I can accept issues for develop connectors for other SaaS.
+
+## List of Supported Printers
+
+### Argentina
+
+#### Valores de la columna _Estado_
 
 - Dev: En desarrollo.
 - NoTest: Podría funcionar, pero no está testeado.
