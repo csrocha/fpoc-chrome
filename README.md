@@ -1,4 +1,4 @@
-# ![Logo](https://raw.githubusercontent.com/csrocha/fp-chrome-app-oerp/master/img/icon-128px.png) Fiscal Printer on the Cloud
+# ![Logo](https://raw.githubusercontent.com/csrocha/fp-chrome-app-oerp/master/img/icon-48px.png) Fiscal Printer on the Cloud
 ## fp-chrome-app-oerp
 
 Cliente de impresora fiscales para la Nube.
