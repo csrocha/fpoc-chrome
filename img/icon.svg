@@ -15,9 +15,9 @@
    version="1.1"
    inkscape:version="0.48.5 r10040"
    sodipodi:docname="icon.svg"
-   inkscape:export-filename="/home/crocha/Proyectos/fp-chrome-app/img/icon-16px.png"
-   inkscape:export-xdpi="22.5"
-   inkscape:export-ydpi="22.5">
+   inkscape:export-filename="/home/crocha/Proyectos/fpoc-chrome/img/icon-128px.png"
+   inkscape:export-xdpi="180"
+   inkscape:export-ydpi="180">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -59,42 +59,38 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-317.08017,-172.80451)">
-    <g
-       id="g3814"
-       transform="translate(0.28571461,-7.1428515)">
-      <text
-         sodipodi:linespacing="125%"
-         id="text2985-3"
-         y="230.8045"
-         x="323.08017"
-         style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:none;stroke:#ffffff;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;font-family:FontAwesome;-inkscape-font-specification:FontAwesome"
-         xml:space="preserve"><tspan
-           y="230.8045"
-           x="323.08017"
-           id="tspan2987-9"
-           sodipodi:role="line"></tspan></text>
-      <text
-         sodipodi:linespacing="125%"
-         id="text2985"
-         y="230.8045"
-         x="323.08017"
-         style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:FontAwesome;-inkscape-font-specification:FontAwesome"
-         xml:space="preserve"><tspan
-           y="230.8045"
-           x="323.08017"
-           id="tspan2987"
-           sodipodi:role="line"></tspan></text>
-      <text
-         sodipodi:linespacing="125%"
-         id="text2989"
-         y="220.5188"
-         x="337.65158"
-         style="font-size:24px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:FontAwesome;-inkscape-font-specification:FontAwesome"
-         xml:space="preserve"><tspan
-           y="220.5188"
-           x="337.65158"
-           id="tspan2991"
-           sodipodi:role="line"></tspan></text>
-    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:none;stroke:#ffffff;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;font-family:FontAwesome;-inkscape-font-specification:FontAwesome"
+       x="323.36588"
+       y="223.66165"
+       id="text2985-3"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan2987-9"
+         x="323.36588"
+         y="223.66165"></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:FontAwesome;-inkscape-font-specification:FontAwesome"
+       x="323.36588"
+       y="223.66165"
+       id="text2985"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan2987"
+         x="323.36588"
+         y="223.66165"></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:24px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:FontAwesome;-inkscape-font-specification:FontAwesome"
+       x="337.93729"
+       y="217.37595"
+       id="text2989"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan2991"
+         x="337.93729"
+         y="217.37595"></tspan></text>
   </g>
 </svg>
