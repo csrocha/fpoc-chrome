@@ -22,9 +22,9 @@ This column show the state of the develop.
 
 ### List by countries
 
-### Listado de impresoras Homologadas en Argentina.
+#### Listado de impresoras Homologadas en Argentina.
 
-|Marca|Modelo|R.G.|Fecha|Cod.|Tipo|Estado|
+|Marca|Modelo|R.G.|Fecha|Cod.|Tipo|State|
 |-----|------|----|-----|----|----|---------|
 |MORETTI|OPALE|AFIP 87|16/02/98|MMA|1||
 |MORETTI|OPALE  I|AFIP 250|03/11/98|MMB|1||
