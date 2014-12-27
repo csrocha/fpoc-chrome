@@ -15,7 +15,7 @@ List of Supported Printers
 - Test: En testing.
 - Prod: En producción.
 
-### Listado de impresoras.
+### Listado de impresoras Homologadas en Argentina.
 
 |CUIT Empresa|Denominación Proveedor|Marca|Modelo|R.G.|Fecha|Cod.|Tipo|Estado|
 |------------|----------------------|-----|------|----|-----|----|----|---------|
