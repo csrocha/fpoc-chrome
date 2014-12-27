@@ -10,14 +10,17 @@ Actually the only supported server is Odoo, using the [odoo-fpoc](https://github
 
 ## List of Supported Printers
 
-### Argentina
+### The column _State_
 
-#### Valores de la columna _Estado_
+This column show the state of the develop.
 
-- Dev: En desarrollo.
-- NoTest: Podría funcionar, pero no está testeado.
-- Test: En testing.
-- Prod: En producción.
+- Dev: In developing.
+- Test: In testing.
+- Mat: Mature.
+- No: No supported.
+- NoTest: No tested.
+
+### List by countries
 
 ### Listado de impresoras Homologadas en Argentina.
 
@@ -106,7 +109,7 @@ Actually the only supported server is Odoo, using the [odoo-fpoc](https://github
 |EPSON|TM T88 IV LC|AFIP 2378|20/12/07|PEM|3||
 |EPSON|TM T88 IV C|AFIP 2452|14/05/08|PEN|3||
 |EPSON |TM - U950F Gaia|AFIP 2604|05/05/09|PEE|2||
-|EPSON|TM U220 AF II (v.22.00) Hera|AFIP 2767|17/02/10|PEO|2|Dev|
+|EPSON|TM U220 AF II (v.22.00) Hera|AFIP 2767|17/02/10|PEO|2|Test|
 |EPSON|TM-T260 F (v.23.00) Chronos|AFIP 3031|09/02/11|PEP|2||
 |EPSON|LX 300F+ II (v.11.00) Dionisos|AFIP 3082|13/04/11|PEQ|2||
 |EPSON|TM-U220 AF II (v.22.01) Demeter|AFIP 3326|15/05/12|PEO|2||
