@@ -261,8 +261,11 @@ color: white !important;
 }
 
 #alert {
-float: right;
 margin: 30px;
+display: block;
+position: absolute;
+z-index: 100;
+right: 10px;
 }
 
 .alert {
@@ -270,5 +273,15 @@ background-color: rgb(162, 123, 151);
 padding: 15px;
 border-radius: 5px;
 }
+
+#overlay p {
+    margin: 0;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%) }
+
 /* vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
  * */
