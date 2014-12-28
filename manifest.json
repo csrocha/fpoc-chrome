@@ -4,7 +4,7 @@
   "short_name": "FPoC",
   "version": "0.0.5",
   "default_locale": "es",
-  "description": "This app publish local fiscal printers into the cloud for remote access and control.",
+  "description": "FPoC publica tu Impresora Fiscal en servidores de la nueve (SaaS), sin necesidad de drivers o software extra. Solo necesitas un navegador Chrome ó Chromium, en Windows, iOS, Linux o Chrome OS.",
   "icons": { "16": "img/icon-16px.png", "128": "img/icon-128px.png" },
   "author": "Cristian S. Rocha",
   "app": {
