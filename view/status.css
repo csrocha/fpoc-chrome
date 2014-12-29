@@ -268,10 +268,20 @@ z-index: 100;
 right: 10px;
 }
 
-.alert {
-background-color: rgb(162, 123, 151);
+#alert p {
+background-color: rgba(240, 102, 135, 0.9);
+color: white;
 padding: 15px;
 border-radius: 5px;
+font-size: large;
+font-weight: bolder;
+-webkit-transition: opacity 0.5s ease-in;
+-moz-transition: opacity 0.5s ease-in;
+-o-transition: opacity 0.5s ease-in;
+}
+
+.fadeout {
+    opacity:0;
 }
 
 #overlay p {
@@ -281,7 +291,8 @@ border-radius: 5px;
     top: 50%;
     left: 50%;
     margin-right: -50%;
-    transform: translate(-50%, -50%) }
+    transform: translate(-50%, -50%);
+}
 
 /* vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
  * */

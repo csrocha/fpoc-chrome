@@ -62,19 +62,27 @@ function login(callback) {
         };
         session.onlogerror = function(s) {
             console.debug("[SES] Login error. Forget session_id.");
-            chrome.storage.local.set({'session_id': null});
+            chrome.storage.local.set({
+                'session_id': null
+            });
             open_status(session);
         };
         session.onerror = function(s) {
             console.debug("[SES] Session error. Forget session_id.");
             for (i in session.receptor) session.receptor[i].close();
-            chrome.storage.local.set({'session_id': null});
+            chrome.storage.local.set({
+                'server': session.server,
+                'session_id': null
+            });
             open_status(session);
         };
         session.onexpired = function(s) {
             console.debug("[SES] Session expired. Forget session_id.");
             for (i in session.receptor) session.receptor[i].close();
-            chrome.storage.local.set({'session_id': null});
+            chrome.storage.local.set({
+                'server': session.server,
+                'session_id': null
+            });
             open_status(session);
         };
         session.init(callback);

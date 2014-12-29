@@ -173,12 +173,14 @@ function set_state(_state) {
 
 function do_alert(message) {
     var message_element = document.createElement("p");
-    message_element.className = "alert"
     message_element.textContent = message;
     alert_text.appendChild(message_element);
     window.setTimeout(function(){
-        alert_text.removeChild(message_element);
-    }, 5000);
+        message_element.className="fadeout";
+        window.setTimeout(function(){
+            alert_text.removeChild(message_element);
+        }, 2000);
+    }, 4000);
 };
 
 function do_message(dir, message) {
@@ -190,7 +192,7 @@ function do_message(dir, message) {
 
 function load_databases(url, callback) {
     var on_error = function(mess) {
-        do_alert("Connection problem with OpenERP server " + session.server + ". " + mess);
+        do_alert("Connection problem with OpenERP server.\n" + session.server + ". " + mess);
         server_input.selectedIndex = 0;
         session.server = null;
         set_state('url');
@@ -318,6 +320,7 @@ do_message("Start window");
 if (window.session && window.session.session_id) {
     set_state('online');
 } else {
+    if (window.session.server) server_input.value = session.server;
     set_state('url');
 };
 update();
