@@ -23,13 +23,7 @@ var serial = function(device) {
     this.type = 'serial';
 
     this.onReceive = function(receiveInfo) {
-      console.log("ReceiveInfo:");
-      console.log(receiveInfo);
-      console.log("Connection sin Self:");
-      console.log(connection);
-      console.log("Connection con Self:");
-      console.log(self.connection);
-      if (receiveInfo.connectionId === connection.connectionId) {
+      if (receiveInfo.connectionId === self.connection.connectionId) {
         var dataView = new Uint8Array(receiveInfo.data);
         buffer = concatBuf(buffer, receiveInfo.data);
       }
@@ -42,15 +36,13 @@ var serial = function(device) {
         var callback = callback;
         chrome.serial.connect(device.path, {},
                 function(connInfo) {
-                    console.log("Connection Info:");
-                    console.log(connInfo);
                     self.connection = connInfo;
                     callback(self);
                 });
     };
 
     this.close = function(callback) {
-        chrome.serial.disconnect(connection.connectionId, callback);
+        chrome.serial.disconnect(self.connection.connectionId, callback);
     };
 
     this.send = function(data, callback) { 
@@ -58,7 +50,7 @@ var serial = function(device) {
         var callback = callback;
         buffer = buffer.slice(bufferRef);
         bufferRef = 0;
-        chrome.serial.send(connection.connectionId, data,
+        chrome.serial.send(self.connection.connectionId, data,
                 function(res) {
                     if (res.error) {
                         res.resultCode = -1;
