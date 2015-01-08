@@ -23,6 +23,10 @@ var serial = function(device) {
     this.type = 'serial';
 
     this.onReceive = function(receiveInfo) {
+      console.log("ReceiveInfo:");
+      console.log(receiveInfo);
+      console.log("Connection:");
+      console.log(connection);
       if (receiveInfo.connectionId === connection.connectionId) {
         var dataView = new Uint8Array(receiveInfo.data);
         buffer = concatBuf(buffer, receiveInfo.data);
