@@ -1,3 +1,5 @@
+# Protocolo EPSON, Revision D (11/06/2010)
+
 var result_messages = {
 	0x0000:"Resultado exitoso",
 	0x0001:"Error interno",
@@ -210,7 +212,7 @@ function pack() {
             value = (new Uint8Array([SymbolMap[types[i]]])).buffer;
         } else
         if (['S'].indexOf(types[i]) >= 0) {
-            value = (new Uint8Array([0x81 + (fields[j++] % 127)])).buffer;
+            value = (new Uint8Array([0x20 + (fields[j++] % 95)])).buffer;
         } else
         if (['W'].indexOf(types[i]) >= 0) {
             value = new ArrayBuffer(2);
@@ -395,7 +397,7 @@ var printerStateString = function(data) {
         strReceiptState[s.receiptState]
 };
 
-var epson_ar = function(interface, sequence) {
+var epson_d_ar = function(interface, sequence) {
     var sequence = typeof sequence !== 'undefined' ? sequence : 0;
     var self = this;
     var ackbuf = new Uint8Array([0x06]);

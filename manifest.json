@@ -18,7 +18,8 @@
 			  "src/usb.js",
 			  "src/bundle.js",
 			  "src/oerp.js",
-			  "src/epson_ar.js",
+			  "src/epson_d_ar.js",
+			  "src/epson_e_ar.js",
 			  "src/tools.js",
 			  "src/sevents.js",
 			  "src/background.js" ]
