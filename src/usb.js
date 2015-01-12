@@ -75,10 +75,8 @@ var usb = function(device) {
     this.close = function(callback) {
         var self = this;
         var callback = callback;
-        chrome.usb.releaseInterface(self.handle, 1, function() {
-            chrome.usb.releaseInterface(self.handle, 0, function() {
-                chrome.usb.closeDevice(self.handle, callback);
-            });
+        chrome.usb.releaseInterface(self.handle, 0, function() {
+            chrome.usb.closeDevice(self.handle, callback);
         });
     };
 

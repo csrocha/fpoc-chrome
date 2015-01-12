@@ -4,11 +4,12 @@ var epson_d_ar = function(interface, sequence) {
     var self = this;
     var sequence = typeof sequence !== 'undefined' ? sequence : 0;
 
-    this.ar = new epson_ar_common(interface, 0x20,0x5f);
-    this.protocol = 'epson_d_ar';
     this.interface = interface;
+    this.ar = new epson_ar_common(interface, 0x20,0x5f);
+    this.ackbuf = new Uint8Array([0x06]);
+    this.common = this.ar.common;
+    this.protocol = 'epson_d_ar';
     this.busy = 0;
-    this.command = this.common.command;
 
     // Values | Enums
     this.speed = {
@@ -49,15 +50,15 @@ var epson_d_ar = function(interface, sequence) {
         }
     };
 
-    // 6.1.1 Obtener Estado (00 01)
+    // 2.1 Solicitud de Estado (2a)
     this._get_status = function(callback) {
        var self = this;
        self.common.command(
                 'get_status',
-                self.common.pack("<SW_W>*", sequence++, 0x0001, 0x0000),
-                '<SW_W__W_>*',
-                ['printerStatus', 'fiscalStatus', 'result'],
-                self.command_callback);
+                self.common.pack("<SE_B>*", sequence++, 0x2a, 'N'),
+                '<SE_A_A_A_A_A_A_A_A_A_A>*',
+                ['printerStatus', 'fiscalStatus', 'lastTicket', 'dateFirstTicket', 'timeFirstTicket', 'lastFiscalCloseNumber', 'dataPartialAuditory', 'dataTotalAuditory', 'idPrinterAuditory', 'textPrinterAuditory'],
+                self.command_callback(callback));
     };
 
     // 6.1.2 Obtener Error de Inicio (00 03)
@@ -81,7 +82,7 @@ var epson_d_ar = function(interface, sequence) {
     };
 
     // 6.1.4 Obtener ID (00 05)
-    this.get_id = function(callback) {
+    this._get_id = function(callback) {
         self.common.command(
                 'get_id',
                 self.common.pack("<SW_W>*", sequence++, 0x0005, 0x0000),
@@ -945,7 +946,22 @@ var epson_d_ar = function(interface, sequence) {
             });
         }
     };
-
+    
+    // Info
+    this.get_info = function(callback) {
+        var self = this;
+        if (self.busy) {
+            callback({'status': 'busy'});
+        } else {
+            self._get_status(function(res) {
+                self._status = res;
+                res.model = res.textPrinterAuditory;
+                res.serialNumber = res.idPrinterAuditory;
+                callback(res);
+            });
+        }
+    };
+ 
     // Tests
 
     // API: Execute short test

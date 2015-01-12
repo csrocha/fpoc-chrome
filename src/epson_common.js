@@ -92,6 +92,10 @@ var epson_common = function(interface, sequence_start, sequence_size) {
 		if (['S'].indexOf(types[i]) >= 0) {
 		    value = (new Uint8Array([self.sequence_start + (fields[j++] % self.sequence_size)])).buffer;
 		} else
+		if (['E'].indexOf(types[i]) >= 0) {
+		    value = (new Uint8Array([fields[j++]])).buffer;
+		    value = self.bufEscape(value);
+		} else
 		if (['W'].indexOf(types[i]) >= 0) {
 		    value = new ArrayBuffer(2);
 		    vvalue = new DataView(value);
@@ -114,7 +118,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
 		} else
 		if (['A', 'L', 'B', 'P', 'H', 'R', 'Y', 'B', 'D', 'T'].indexOf(types[i]) >= 0) {
 		    var value = null;
-			 if (typeof fields[j] == 'number') { value = str2ab(fields[j++].toString()); }
+			if (typeof fields[j] == 'number') { value = str2ab(fields[j++].toString()); }
 		    else if (typeof fields[j] == 'string') { value = str2ab(fields[j++]); }
 		    else                                   { value = fields[j++]; }
 		    value = self.bufEscape(value);
@@ -179,6 +183,9 @@ var epson_common = function(interface, sequence_start, sequence_size) {
 		    var d = v.getUint8(l++);
 		} else
 		if (['S'].indexOf(types[i]) >= 0) {
+		    var d = v.getUint8(l++);
+		} else 
+		if (['E'].indexOf(types[i]) >= 0) {
 		    var d = v.getUint8(l++);
 		} else {
 		    console.debug('Type ', types[i], ' not implemented');

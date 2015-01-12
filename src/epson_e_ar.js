@@ -29,17 +29,16 @@ var epson_e_ar = function(interface, sequence) {
         var self = this;
         return function(response) {
             if (response && response.printerStatus != null) { 
-                self.extend(response, self.ar.printerState(response.printerStatus));
+                self.common.extend(response, self.ar.printerState(response.printerStatus));
                 response.strPrinterStatus = self.ar.printerStateString(response.printerStatus);
             };
             if (response && response.fiscalStatus != null) {
-                self.extend(response, self.ar.fiscalState(response.fiscalStatus));
+                self.common.extend(response, self.ar.fiscalState(response.fiscalStatus));
                 response.strFiscalStatus = self.ar.fiscalStateString(response.fiscalStatus);
             };
             if (response && response.result) {
                 response.strResult = result_messages[response.result];
             };
-            self.busy--;
             callback(response);
         }
     };
@@ -59,7 +58,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0001, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.1.2 Obtener Error de Inicio (00 03)
@@ -69,7 +68,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0003, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
     
     // 6.1.3 Obtener Error de Proceso Interno (00 04)
@@ -79,11 +78,11 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0004, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.1.4 Obtener ID (00 05)
-    this.get_id = function(callback) {
+    this._get_id = function(callback) {
         self.common.command(
                 'get_id',
                 self.common.pack("<SW_W>*", sequence++, 0x0005, 0x0000),
@@ -93,7 +92,7 @@ var epson_e_ar = function(interface, sequence) {
                 'POS', 'width10cpi', 'width12cpi', 'width17cpi', 'widthCols',
                 'lines', 'isTique', 'isTiqueFactura', 'isFactura',
                 'digits', 'selected'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.1.5 Configurar Velocidad de Comunicación (Host Port) (00 0A)
@@ -103,7 +102,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0005, speed),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.2.1 Reporte de Diagnóstico e Información del Equipo (02 01)
@@ -113,7 +112,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0201, station),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.2.2 Ripple Test (02 04)
@@ -123,7 +122,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_N30>*", sequence++, 0x0204, station, no_lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.2.3 Obtener Información del Equipo (02 0A)
@@ -137,8 +136,8 @@ var epson_e_ar = function(interface, sequence) {
                  'mayorVersion', 'menorVersion', 'compVersion',
                  'printerId', 'printerName',
                  'fiscalMemory', 'transactionMemory', 'workMemory',
-                 'jumperConnected', 'jumperState'
-                ], callback);
+                 'jumperConnected', 'jumperState'],
+                 self.command_callback(callback));
     };
 
     // 6.2.4 Tique Técnico (02 10)
@@ -149,8 +148,8 @@ var epson_e_ar = function(interface, sequence) {
                 '<SW_W__W__N_N_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'ticketNumber', 'totalAmount',
-                 'vatAmount', 'returnAmount'
-                ], callback);
+                 'vatAmount', 'returnAmount'],
+                self.command_callback(callback));
     };
     
     // 6.3.1 Configurar Fecha y Hora (05 01)
@@ -159,8 +158,8 @@ var epson_e_ar = function(interface, sequence) {
                 'set_datetime',
                 self.common.pack("<SW_W_D_T>*", sequence++, 0x0501, 0, date, time),
                 '<SW_W__W_>*',
-                ['printerStatus', 'fiscalStatus', 'result',
-                ], callback);
+                ['printerStatus', 'fiscalStatus', 'result'],
+                self.command_callback(callback));
     };
 
     // 6.3.2 Obtener Configuración de Fecha y Hora (05 02)
@@ -170,8 +169,8 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0502, 0),
                 '<SW_W__W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
-                 'date', 'time',
-                ], callback);
+                 'date', 'time'],
+                self.command_callback(callback));
     };
 
     // 6.3.3 Obtener Datos de Fiscalización (05 07)
@@ -183,8 +182,8 @@ var epson_e_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result',
                  'razonSocial', 'cuit', 'caja', 'ivaResposabilidad',
                  'calle', 'numero', 'piso', 'depto', 'localidad', 'cpa', 'provincia',
-                 'tasaIVA', 'maxMonto', 'fechaFiscalizacion', 'cambiosResponsablesDisponibles'
-                ], callback);
+                 'tasaIVA', 'maxMonto', 'fechaFiscalizacion', 'cambiosResponsablesDisponibles'],
+                self.command_callback(callback));
     };
 
     // 6.3.4 Configurar Líneas de Encabezado (05 08)
@@ -194,7 +193,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_N30_R>*", sequence++, 0x0508, 0x0000, lineno, text),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.5 Obtener Configuración de Líneas de Encabezado (05 09)
@@ -204,7 +203,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_N30>*", sequence++, 0x0509, 0x0000, lineno),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'text'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.6 Configurar Líneas de Cola (05 0A)
@@ -214,7 +213,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_N30_R>*", sequence++, 0x050A, 0x0000, lineno, text),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.7 Obtener Configuración de Líneas de Cola (05 0B)
@@ -224,7 +223,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_N30>*", sequence++, 0x050B, 0x0000, lineno),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'text'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.8 Configurar Líneas de Información del Establecimiento (05 0E)
@@ -234,7 +233,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_R>*", sequence++, 0x050E, line, value),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
     
     // 6.3.9 Obtener Líneas de Información del Establecimiento (05 0F)
@@ -244,7 +243,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x050F, line),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'value'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.10 Iniciar Carga de Logo de Usuario (05 30)
@@ -255,7 +254,7 @@ var epson_e_ar = function(interface, sequence) {
                     width, height, quantity),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.11 Enviar Datos de Logo del Usuario (05 31)
@@ -266,7 +265,7 @@ var epson_e_ar = function(interface, sequence) {
                     bitmap),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.12 Terminar Carga de Logo del Usuario (05 32)
@@ -276,7 +275,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0532, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.13 Cancelar Carga de Logo del Usuario (05 33)
@@ -286,7 +285,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0533, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.14 Eliminar Logo del Usuario (05 34)
@@ -296,7 +295,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0534, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.15 Configurar Monto Máximo de Tique-Factura / Nota de Crédito (05 40)
@@ -307,7 +306,7 @@ var epson_e_ar = function(interface, sequence) {
                     amount),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.3.16 Impresión de arqueo de pagos (05 52)
@@ -317,7 +316,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0552, active && 1),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     };
     
     // 6.3.17 Obtener estado de impresión de arqueo de pagos (05 53)
@@ -328,7 +327,7 @@ var epson_e_ar = function(interface, sequence) {
                 '<SW_W__W__N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'active'],
-                callback);
+                self.command_callback(callback));
     };
 
     // 6.4.1 Avanzar Papel (07 01)
@@ -338,7 +337,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_N20>*", sequence++, 0x0701, station & 0x0003, lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     }
     
     // 6.4.2 Cortar Papel (07 02)
@@ -348,7 +347,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W>*", sequence++, 0x0702, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     }
 
     // 6.5.1 Reporte Z (08 01)
@@ -360,7 +359,7 @@ var epson_e_ar = function(interface, sequence) {
                 '<SW_W__W__W>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'closeNumber'],
-                callback);
+                self.command_callback(callback));
     }
     
     // 6.5.2 Reporte X (08 02)
@@ -372,7 +371,7 @@ var epson_e_ar = function(interface, sequence) {
                 '<SW_W__W__W>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'closeNumber'],
-                callback);
+                self.command_callback(callback));
     }
 
     // 6.5.4 Información Electrónica General de la Jornada Fiscal en Curso (08 0A)
@@ -414,7 +413,7 @@ var epson_e_ar = function(interface, sequence) {
                  'number_of_b_credit_document',
                  'need_close_journal',       // 30
                  ],
-                callback);
+                self.command_callback(callback));
     }
 
     // 6.5.23 Información de Contadores (08 30)
@@ -436,7 +435,7 @@ var epson_e_ar = function(interface, sequence) {
                  'last_b_sale_document_completed', // 10
                  'last_a_sale_document_completed',
                  ],
-                callback);
+                self.command_callback(callback));
     }
 
     // Comandos de Tique-Factura / Tique-Nota de Débito (0B)
@@ -500,7 +499,7 @@ var epson_e_ar = function(interface, sequence) {
                         turist_check),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback(callback));
     }
 
     // 6.7.2 Item (0B 02)
@@ -593,7 +592,7 @@ var epson_e_ar = function(interface, sequence) {
                 '<SW_W__W_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'subtotal'],
-                callback);
+                self.command_callback(callback));
     }
 
     // 6.7.3 Subtotal (0B 03)
@@ -628,7 +627,7 @@ var epson_e_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result',
                  'gross',
                  'net'],
-                callback);
+                self.command_callback(callback));
     }
 
     // 6.7.4 Descuentos/Recargos (0B 04)
@@ -659,7 +658,7 @@ var epson_e_ar = function(interface, sequence) {
                 '<SW_W__N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'subtotal'],
-                callback);
+                self.command_callback(callback));
     }
     
     // 6.7.5 Pagos (0B 05)
@@ -701,7 +700,7 @@ var epson_e_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result',
                  'result',
                  'change'],
-                callback);
+                self.command_callback(callback));
     }
 
     // 6.7.6 Cerrar (0B 06)
@@ -767,7 +766,7 @@ var epson_e_ar = function(interface, sequence) {
                  'document_amount',
                  'document_vat',
                  'document_return'],
-                callback);
+                self.command_callback(callback));
     }
 
     //
@@ -790,7 +789,7 @@ var epson_e_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result',
                  'document_number',
                  'document_type'],
-                callback);
+                self.command_callback(callback));
     }
 
     //
@@ -947,7 +946,24 @@ var epson_e_ar = function(interface, sequence) {
             });
         }
     };
-
+    
+    // Info
+    this.get_info = function(callback) {
+        var self = this;
+        if (self.busy) {
+            callback({'status': 'busy'});
+        } else {
+            self._get_status(function(res) {
+                if (res) {
+                    self._get_id(function(res) {
+                        self._status = res;
+                        callback(res);
+                    });
+                };
+            });
+        };
+    };
+ 
     // Tests
 
     // API: Execute short test

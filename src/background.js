@@ -22,10 +22,10 @@ function open_status(sess) {
             chrome.app.window.create('view/status.html', {
                 'id': 'status',
                 'bounds': {
-                    'width': 640,
-                    'height': 500
+                    'width': 700,
+                    'height': 640
                 },
-                'minWidth': 640,
+                'minWidth': 700,
                 'minHeight': 640
             }, function(sWindow) {
               sWindow.contentWindow.session = sess;
