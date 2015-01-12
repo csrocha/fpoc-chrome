@@ -69,8 +69,9 @@ var local_printers = {};
 var local_devices = {};
 
 var supported_printers = [
-    { port: 'usb', protocol: 'epson_ar', vendorId: 1208, productId: 514 },
-    { port: 'serial', protocol: 'epson_ar' },
+    { port: 'usb', protocol: 'epson_e_ar', vendorId: 1208, productId: 514 },
+    { port: 'serial', protocol: 'epson_d_ar' },
+    { port: 'serial', protocol: 'epson_e_ar' },
     ];
 
 var query_local_printers = function(callback, onchange) {
@@ -110,8 +111,38 @@ var query_local_printers = function(callback, onchange) {
         }
         // Go for device.
         switch (protocol) {
-        case 'epson_ar':
-            epson_ar_open(device, port,
+        case 'epson_d_ar':
+            epson_d_ar_open(device, port,
+                function(printer) {
+                    printer.get_status(function(result){
+                        if (result) {
+                            printer.get_id(function(result){
+                                if (result) {
+                                    var key = printer.protocol + '://' +
+                                        result.model + ":" +
+                                        result.serialNumber;
+                                    if (key in local_printers) {
+                                        printer.close();
+                                    } else {
+                                        console.debug("[FP] New printer " + key);
+                                        printer.name = key;
+                                        local_printers[key] = printer;
+                                        change=true;
+                                    }
+                                } else {
+                                    console.debug("[FP] Device yet taken");
+                                    printer.close();
+                                };
+                                callback();
+                            });
+                        } else {
+                            printer.close(callback);
+                        };
+                    });
+                });
+            break;
+         case 'epson_e_ar':
+            epson_e_ar_open(device, port,
                 function(printer) {
                     printer.get_status(function(result){
                         if (result) {

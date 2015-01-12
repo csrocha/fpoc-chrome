@@ -18,6 +18,8 @@
 			  "src/usb.js",
 			  "src/bundle.js",
 			  "src/oerp.js",
+			  "src/epson_common.js",
+			  "src/epson_common_ar.js",
 			  "src/epson_d_ar.js",
 			  "src/epson_e_ar.js",
 			  "src/tools.js",

@@ -1,413 +1,19 @@
-# Protocolo EPSON, Revision E (01/10/2012)
-
-var result_messages = {
-	0x0000:"Resultado exitoso",
-	0x0001:"Error interno",
-	0x0002:"Error de inicialización del equipo",
-	0x0003:"Error de proceso interno",
-	0x0101:"Comando inválido para el estado actual",
-	0x0102:"Comando inválido para el documento actual",
-	0x0103:"Comando sólo aceptado en modo técnico",
-	0x0104:"Comando sólo aceptado sin Jumper de Servicio",
-	0x0105:"Comando sólo aceptado con Jumper de Servicio",
-	0x0106:"Comando sólo aceptado sin Jumper de Uso Interno",
-	0x0107:"Comando sólo aceptado con Jumper de Uso Interno",
-	0x0108:"Sub estado inválido",
-	0x0109:"Límite de intervenciones técnicas alcanzado",
-	0x0201:"El frame no contiene el largo mínimo aceptado",
-	0x0202:"Comando inválido",
-	0x0203:"Campos en exceso",
-	0x0204:"Campos en defecto",
-	0x0205:"Campo no opcional",
-	0x0206:"Campo alfanumérico inválido",
-	0x0207:"Campo alfabético inválido",
-	0x0208:"Campo numérico inválido",
-	0x0209:"Campo binario inválido",
-	0x020A:"Campo imprimible inválido",
-	0x020B:"Campo hexadecimal inválido",
-	0x020C:"Campo fecha inválido",
-	0x020D:"Campo hora inválido",
-	0x020E:"Campo fiscal rich text inválido",
-	0x020F:"Campo booleano inválido",
-	0x0210:"Largo del campo inválido",
-	0x0211:"Extensión del comando inválida",
-	0x0212:"Código de barra no permitido",
-	0x0213:"Atributos de impresión no permitidos",
-	0x0214:"Atributo de impresión inválido",
-	0x0215:"Código de barra incorrectamente definido",
-	0x0216:"Combinación de la palabra ‘total’ no aceptada",
-	0x0301:"Error de hardware",
-	0x0302:"Impresora fuera de línea",
-	0x0303:"Error de Impresión",
-	0x0304:"Problemas de papel, no se encuentra en condiciones para realizar la acción requerida, verificar que si hay papel en rollo , slip o validación al mismo tiempo",
-	0x0305:"Poco papel disponible",
-	0x0306:"Error en carga o expulsión de papel",
-	0x0307:"Característica de impresora no soportada",
-	0x0308:"Error de display",
-	0x0309:"Secuencia de scan inválida",
-	0x030A:"Número de área de recorte (crop area) inválido",
-	0x030B:"Scanner no preparado",
-	0x030C:"Resolución de logotipo de la empresa no permitida",
-	0x030D:"Imposible imprimir documento en estación térmica",
-	0x0401:"Número de serie inválido",
-	0x0402:"Deben configurarse los datos de fiscalización",
-	0x0501:"Fecha / Hora no configurada",
-	0x0502:"Error en cambio de fecha",
-	0x0503:"Fecha fuera de rango",
-	0x0505:"Número de caja inválido",
-	0x0506:"CUIT inválido",
-	0x0507:"Responsabilidad frente al IVA inválida",
-	0x0508:"Número de línea de Encabezado/Cola inválido",
-	0x0509:"Demasiadas fiscalizaciones",
-	0x050A:"Demasiados cambios de situación tributaria",
-	0x050B:"Demasiados cambios de datos de fiscalización",
-	0x0513:"Logo de usuario inválido",
-	0x0514:"Secuencia de definición de logos de usuario inválida",
-	0x0515:"Configuración de Display inválida",
-	0x0516:"Tipo de letra de MICR inválida",
-	0x0518:"Líneas de establecimiento no configuradas",
-	0x0519:"Datos fiscales no configurados",
-	0x0520:"Situación tributaria no configurada",
-	0x0521:"Tasa de IVA estándar no configurada",
-	0x0522:"Límite de tique-factura no configurado",
-	0x0524:"Monto máximo de tique-factura no permitido",
-	0x0525:"Largo del logotipo de la empresa no permitido",
-	0x0526:"Posición del logotipo de la empresa inválido",
-	0x0527:"El tamaño del logotipo de la empresa excede el máximo",
-	0x0801:"Comando inválido fuera de la jornada fiscal",
-	0x0802:"Comando inválido dentro de la jornada fiscal",
-	0x0803:"Memoria fiscal llena. Imposible la apertura de la jornada fiscal",
-	0x0807:"Periodo auditado sin datos",
-	0x0808:"Rango auditado inválido",
-	0x0809:"Restan datos por auditar",
-	0x080A:"No hay más datos a descargar",
-	0x080B:"No es posible abrir la jornada fiscal",
-	0x080C:"No es posible cerrar la jornada fiscal",
-	0x0901:"Overflow",
-	0x0902:"Underflow",
-	0x0903:"Demasiados ítems involucrados en la transacción",
-	0x0904:"Demasiadas tasas de impuesto utilizadas",
-	0x0905:"Demasiados descuentos/recargos sobre subtotal involucradas en la transacción",
-	0x0906:"Demasiados pagos involucrados en la transacción",
-	0x0907:"Item no encontrado",
-	0x0908:"Pago no encontrado",
-	0x0909:"El total debe ser mayor a cero",
-	0x090A:"Se permite sólo un tipo de impuestos internos",
-	0x090B:"Impuesto interno no aceptado",
-	0x090F:"Tasa de IVA no encontrada",
-	0x0910:"Tasa de IVA inválida",
-	0x0A01:"No permitido luego de descuentos/recargos sobre el subtotal",
-	0x0A02:"No permitido luego de iniciar la fase de pago",
-	0x0A03:"Tipo de ítem inválido",
-	0x0A04:"Línea de descripción en blanco",
-	0x0A05:"Cantidad resultante menor que cero",
-	0x0A06:"Cantidad resultante mayor a lo permitido",
-	0x0A07:"Precio total del ítem mayor al permitido",
-	0x0A0A:"Fase de pago finalizada",
-	0x0A0B:"Monto de pago no permitido",
-	0x0A0C:"Monto de descuento/recargo no permitido",
-	0x0A0F:"No permitido antes de un ítem",
-	0x0A10:"Demasiadas descripciones extras",
-	0x0B01:"Tipo de documento del comprador inválido",
-	0x0B02:"Máximo valor aceptado fue superado",
-	0x0B03:"CUIT/CUIL inválido",
-	0x0B04:"Tipo de percepción inválida",
-	0x0B05:"Exceso en la cantidad de líneas de separación de la firma",
-	0x0B06:"Monto cero de percepción no permitido",
-	0x0B07:"Demasiadas percepciones involucradas en la transacción",
-	0x0B08:"Percepción no encontrada",
-	0x0B09:"Operación no permitida luego de percepciones",
-	0x0B0A:"Exceso de operaciones dentro del documento con triplicado",
-	0x0B0B:"Tique factura del turista solo es aceptado en tique-factura B",
-	0x0B0C:"Datos del turista inválidos",
-	0x0B0D:"Número de documento inválido",
-	0x0B0E:"Documento no soportado por el mecanismo de impresión",
-	0x0E02:"Exceso de código de barras dentro del documento",
-	0x0F02:"Falla en las condiciones del sector de DNFH Multicomando",
-	0xFFFF:"Error desconocido",
-};
-
-var STX = 0x02
-var ETX = 0x03
-var R01 = 0x1A
-var ESC = 0x1B
-var FLD = 0x1C
-var R02 = 0x1D
-var R03 = 0x1E
-var R04 = 0x1F
-
-ToEscape = [ STX, ETX, R01, ESC, FLD, R02, R03, R04 ];
-
-extend = function(destination, source) {
-  for (var property in source) {
-      if (source.hasOwnProperty(property)) {
-          destination[property] = source[property];
-      }
-  }
-  return destination;
-};
-
-var escape_counter = 0;
-
-function bufEscape(inbuf) {
-    var buf = new ArrayBuffer(inbuf.byteLength*2);
-    var bufView = new Uint8Array(buf);
-    var inbufView = new Uint8Array(inbuf);
-    var i = 0;
-    for (j in inbufView) {
-        c = inbufView[j];
-        if (ToEscape.indexOf(c) >= 0) {
-            bufView[i] = ESC;
-            i++;
-        };
-        bufView[i] = c;
-        i++;
-    };
-    return buf.slice(0,i);
-};
-
-function bufUnescape(inbuf) {
-    var buf = new ArrayBuffer(inbuf.byteLength);
-    var bufView = new Uint8Array(buf);
-    var inbufView = new Uint8Array(inbuf);
-    var i = 0;
-    var s = false;
-    var stop_chars = false;
-
-    if (arguments.length == 2) {
-        stop_chars = arguments[1];
-    }
-
-    escape_counter=0;
-
-    for (j in inbufView) {
-        c = inbufView[j];
-        if (!s && c == ESC) {
-            s = true;
-            escape_counter++;
-        } else {
-            s = false;
-            if (stop_chars && stop_chars.indexOf(inbufView[j]) >= 0) {
-                return buf.slice(0,i);
-            }
-            bufView[i] = inbufView[j];
-            i++;
-        };
-    };
-    return buf.slice(0,i);
-};
-
-function pack() {
-    var types = arguments[0];
-    var fields = arguments;
-    var values = [];
-    var l = 0;
-    var SymbolMap = {
-        '<': STX,
-        '>': ETX,
-        '_': FLD,
-    };
-    for (i=0, j=1; i < types.length; i++) {
-        if (types[i] in SymbolMap) {
-            value = (new Uint8Array([SymbolMap[types[i]]])).buffer;
-        } else
-        if (['S'].indexOf(types[i]) >= 0) {
-            value = (new Uint8Array([0x81 + (fields[j++] % 127)])).buffer;
-        } else
-        if (['W'].indexOf(types[i]) >= 0) {
-            value = new ArrayBuffer(2);
-            vvalue = new DataView(value);
-            vvalue.setUint16(0, fields[j++], false);
-            value = bufEscape(value);
-        } else
-        if (['N'].indexOf(types[i]) >= 0) {
-            var integers = parseInt(types[++i],16);
-            var decimals = parseInt(types[++i],16);
-            var prevalue = pad(fields[j++].toFixed(decimals), integers + 1 + decimals, "0").split(".");
-            var value = null;
-            if (integers == 0) {
-                value = str2ab(prevalue[1].substr(0,decimals))
-            } else if (decimals == 0) {
-                value = str2ab(prevalue[0].substr(1,integers))
-            } else {
-                value = str2ab(prevalue.join(""));
-            }
-            value = bufEscape(value);
-        } else
-        if (['A', 'L', 'B', 'P', 'H', 'R', 'Y', 'B', 'D', 'T'].indexOf(types[i]) >= 0) {
-            var value = null;
-                 if (typeof fields[j] == 'number') { value = str2ab(fields[j++].toString()); }
-            else if (typeof fields[j] == 'string') { value = str2ab(fields[j++]); }
-            else                                   { value = fields[j++]; }
-            value = bufEscape(value);
-        }
-        if (types[i] == '*') {
-            l+=4;
-        } else {
-            l+=value.byteLength;
-            values.push(value);
-        }
-    };
-    var buf = new ArrayBuffer(l);
-    var vbuf = new Uint8Array(buf);
-    // Fill buffer.
-    for (var i=0, k=0; i < values.length; i++) {
-        vval = new Uint8Array(values[i]);
-        for (var j=0; j < vval.length; j++) {
-            vbuf[k++] = vval[j]
-        }
-    }
-    // Checksum computation.
-    var cs = 0;
-    for (var i = 0; i < vbuf.length; i++) { cs = cs + vbuf[i]; };
-    cs = cs.toString(16);
-    for (var i = 0; i < 4; i++)
-        if (i < 4 - cs.length) {
-            vbuf[k++] = '0'.charCodeAt(0);
-        } else {
-            vbuf[k++] = cs.charCodeAt(i-4+cs.length);
-        }
-    return buf;
-};
-
-function unpack() {
-    var types = arguments[0];
-    var fields = arguments[1];
-    var data = arguments[2];
-    var r = {};
-    var f = 0;
-    var l = 0;
-    var v = new DataView(data);
-    for (var i=0; i < types.length; i++) {
-        if (['W'].indexOf(types[i]) >= 0) {
-            var nb = bufUnescape(data.slice(l, l+4));
-            var nv = new DataView(nb);
-            r[fields[f++]] = nv.getUint16(0, false);
-            l+=2+escape_counter;
-        } else  
-        if (['A','P','L','N','Y','R','D','T'].indexOf(types[i]) >= 0) {
-            var nb = bufUnescape(data.slice(l), [FLD,ETX]);
-            r[fields[f++]] = ab2str(nb);
-            l+=nb.byteLength+escape_counter;
-        } else  
-        if (['<'].indexOf(types[i]) >= 0) {
-            var d = v.getUint8(l++);
-        } else
-        if (['>'].indexOf(types[i]) >= 0) {
-            var d = v.getUint8(l++);
-        } else
-        if (['_'].indexOf(types[i]) >= 0) {
-            var d = v.getUint8(l++);
-        } else
-        if (['S'].indexOf(types[i]) >= 0) {
-            var d = v.getUint8(l++);
-        } else {
-            console.debug('Type ', types[i], ' not implemented');
-        }
-    }
-    return r;
-}
-
-function unbits(masks, shifts, fields, data) {
-    r = {};
-    for (var i = 0; i < masks.length; i++) {
-        r[fields[i]] = (masks[i] & data) >> shifts[i];
-    }
-    return r;
-};
-
-var fiscalState = function(data) {
-    return unbits([parseInt('1100000000000000',2), 
-                   parseInt('0001000000000000',2),
-                   parseInt('0000110000000000',2),
-                   parseInt('0000000010000000',2),
-                   parseInt('0000000001110000',2),
-                   parseInt('0000000000001111',2)],
-                  [14,12,10,7,4,0],
-                  ['functionMode', 'inTechMode', 'memStatus',
-                   'inFiscalJournal', 'subStatus', 'documentInProgress'],
-                  data);
-};
-
-strFunctionMode = [ 'Modo bloqueado', 'Modo manufactura', 'Modo entrenamiento', 'Modo fiscal' ];
-strInTechMode = [ 'Modo tecnico inactivo', 'Modo activo' ];
-strMemStatus = [ 'Memoria ok', 'Memoria casi llena', 'Memoria llena', 'Memoria dañada' ];
-strInFiscalJournal = [ 'Jornada fiscal cerrada', 'Jornada fiscal abierta' ];
-strSubStatus = [ 'Sin subestados', 'Puerto de auditoría seleccionada',
-             'Configuración de scanner', 'Configuración de logo', 'Auditoría en progreso' ];
-strDocumentInProgress = [ 'Sin documentos en progresos', 'Tique en progreso', 'Tique factura en progreso',
-                      'Tique nota de crédito en progreso', 'Tique nota de débito en progreso', 'Reservado',
-                      'Documento de auditoría en progreso', 'DNFH de auditoría en progreso',
-                      'Documento no fiscal en rollo', 'Documento no fiscal en slip' ];
-
-
-var fiscalStateString = function(data) {
-    var s = fiscalState(data);
-    return strFunctionMode[s.functionMode] + ',' +
-        strInTechMode[s.inTechMode] + ',' +
-        strMemStatus[s.memStatus] + ',' +
-        strInFiscalJournal[s.inFiscalJournal] + ',' +
-        strSubStatus[s.subStatus] + ',' +
-        strDocumentInProgress[s.documentInProgress]
-};
-
-var printerState = function(data) {
-    return unbits([parseInt('1000000000000000',2), 
-                   parseInt('0100000000000000',2), 
-                   parseInt('0010000000000000',2), 
-                   parseInt('0001000000000000',2),
-                   parseInt('0000011000000000',2),
-                   parseInt('0000000110000000',2),
-                   parseInt('0000000001000000',2),
-                   parseInt('0000000000100000',2),
-                   parseInt('0000000000010000',2),
-                   parseInt('0000000000001100',2),
-                   parseInt('0000000000000011',2)],
-                  [15,14,13,12,9,7,6,5,4,2,0],
-                  ['isOffline', 'inError', 'isPrinterOpen', 'isBoxOpen', 'printerStation',
-                   'slipState', 'slipInitHasPaper', 'slipEndHasPaper', 'slipHasPaper',
-                   'journalState', 'receiptState'],
-                  data);
-};
-
-strIsOffline = [ 'Online', 'Offline' ];
-strInError = [ 'Sin error', 'Con error' ];
-strIsPrinterOpen = [ 'Tapa cerrada', 'Tapa abierta' ];
-strIsBoxOpen = [ 'Cajón cerrado', 'Cajón abierto' ];
-strPrinterStation = [ 'Recibos', 'Hojas sueltas', 'Validación', 'MICR' ];
-strSlipState = [ 'Slip Normal', 'Slip a espera de carga de papel', 'Slip a espera de remoción de papel' ]
-strSlipInitHasPaper = [ 'Slip BOF Sin Papel', 'Slip BOF Con Papel' ];
-strSlipEndHasPaper = [ 'Slip TOF Sin Papel', 'Slip TOF Con Papel' ];
-strSlipHasPaper = [ 'Slip Sin Papel', 'Slip Con Papel' ];
-strJournalState = [ 'Journal sin problemas', 'Journal con poco papel disponible', 'Journal sin papel no disponible' ];
-strReceiptState = [ 'Recibo sin problemas', 'Recibo con poco papel disponible', 'Recibo sin papel no disponible' ];
-
-var printerStateString = function(data) {
-    var s = printerState(data);
-    return strIsOffline[s.isOffline] + ',' +
-        strInError[s.inError] + ',' +
-        strIsPrinterOpen[s.isPrinterOpen] + ',' +
-        strIsBoxOpen[s.isBoxOpen] + ',' +
-        strPrinterStation[s.printerStation] + ',' +
-        strSlipState[s.slipState] + ',' +
-        strSlipInitHasPaper[s.slipInitHasPaper] + ',' +
-        strSlipEndHasPaper[s.slipEndHasPaper] + ',' +
-        strSlipHasPaper[s.slipHasPaper] + ',' +
-        strJournalState[s.journalState] + ',' +
-        strReceiptState[s.receiptState]
-};
+// Protocolo EPSON, Revision E (01/10/2012)
 
 var epson_e_ar = function(interface, sequence) {
-    var sequence = typeof sequence !== 'undefined' ? sequence : 0;
     var self = this;
-    var ackbuf = new Uint8Array([0x06]);
+    var sequence = typeof sequence !== 'undefined' ? sequence : 0;
 
-    this.protocol = 'epson_ar';
+    this.ackbuf = new Uint8Array([0x06]);
+    this.ar = new epson_ar_common(0x81,0x7f);
+    this.common = this.ar.common;
+    this.protocol = 'epson_e_ar';
     this.interface = interface;
     this.busy = 0;
 
     this.sendACK = function(callback) {
-        this.interface.send(ackbuf.buffer, function(info) { callback(info.resultCode == 0); });
+        self = this;
+        self.interface.send(self.ackbuf.buffer, function(info) { callback(info.resultCode == 0); });
     };
 
     this.waitResponse = function(types, fields, callback) {
@@ -434,7 +40,7 @@ var epson_e_ar = function(interface, sequence) {
                     } else
                     if (info.data.byteLength>1) {
                         self.sendACK(function(res){
-                            callback(unpack(types, fields, info.data));
+                            callback(self.common.unpack(types, fields, info.data));
                         });
                     };
                 } else {
@@ -480,12 +86,12 @@ var epson_e_ar = function(interface, sequence) {
 
         var local_callback = function(response) {
             if (response && response.printerStatus != null) { 
-                extend(response, printerState(response.printerStatus));
-                response.strPrinterStatus = printerStateString(response.printerStatus);
+                self.common.extend(response, self.ar.printerState(response.printerStatus));
+                response.strPrinterStatus = self.ar.printerStateString(response.printerStatus);
             };
             if (response && response.fiscalStatus != null) {
-                extend(response, fiscalState(response.fiscalStatus));
-                response.strFiscalStatus = fiscalStateString(response.fiscalStatus);
+                self.common.extend(response, self.ar.fiscalState(response.fiscalStatus));
+                response.strFiscalStatus = self.ar.fiscalStateString(response.fiscalStatus);
             };
             if (response && response.result) {
                 response.strResult = result_messages[response.result];
@@ -510,9 +116,10 @@ var epson_e_ar = function(interface, sequence) {
 
     // 6.1.1 Obtener Estado (00 01)
     this._get_status = function(callback) {
+       var self = this;
        self.command(
                 'get_status',
-                pack("<SW_W>*", sequence++, 0x0001, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0001, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -522,7 +129,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_init_error = function(callback) {
         self.command(
                 'get_init_error',
-                pack("<SW_W>*", sequence++, 0x0003, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0003, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -532,7 +139,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_internal_error = function(callback) {
         self.command(
                 'get_internal_error',
-                pack("<SW_W>*", sequence++, 0x0004, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0004, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -542,7 +149,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_id = function(callback) {
         self.command(
                 'get_id',
-                pack("<SW_W>*", sequence++, 0x0005, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0005, 0x0000),
                 '<SW_W__W__P_A_L_P_N_N_N_N_N_N_Y_Y_Y_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                 'model', 'serialNumber', 'firmwareName', 'firmwareVersion',
@@ -556,7 +163,7 @@ var epson_e_ar = function(interface, sequence) {
     this.set_com_speed = function(speed, callback) {
         self.command(
                 'set_com_speed',
-                pack("<SW_W>*", sequence++, 0x0005, speed),
+                self.common.pack("<SW_W>*", sequence++, 0x0005, speed),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -566,7 +173,7 @@ var epson_e_ar = function(interface, sequence) {
     this._print_diag_report = function(station, callback) {
         self.command(
                 '_print_diag_report',
-                pack("<SW_W>*", sequence++, 0x0201, station),
+                self.common.pack("<SW_W>*", sequence++, 0x0201, station),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -576,7 +183,7 @@ var epson_e_ar = function(interface, sequence) {
     this._ripple_test = function(station, no_lines, callback) {
         self.command(
                 '_ripple_test',
-                pack("<SW_W_N30>*", sequence++, 0x0204, station, no_lines),
+                self.common.pack("<SW_W_N30>*", sequence++, 0x0204, station, no_lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -586,7 +193,7 @@ var epson_e_ar = function(interface, sequence) {
     this.print_fiscal_report = function(print, callback) {
         self.command(
                 'print_fiscal_report',
-                pack("<SW_W>*", sequence++, 0x020A, print && 1),
+                self.common.pack("<SW_W>*", sequence++, 0x020A, print && 1),
                 '<SW_W__W__A_N_N_N_N_N_P_N_N_N_Y_B>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'versionName', 'idCountry',
@@ -601,7 +208,7 @@ var epson_e_ar = function(interface, sequence) {
     this._print_technical_ticket = function(callback) {
         self.command(
                 '_print_technical_ticket',
-                pack("<SW_W>*", sequence++, 0x0210, 0),
+                self.common.pack("<SW_W>*", sequence++, 0x0210, 0),
                 '<SW_W__W__N_N_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'ticketNumber', 'totalAmount',
@@ -613,7 +220,7 @@ var epson_e_ar = function(interface, sequence) {
     this._set_datetime = function(date, time, callback) {
         self.command(
                 'set_datetime',
-                pack("<SW_W_D_T>*", sequence++, 0x0501, 0, date, time),
+                self.common.pack("<SW_W_D_T>*", sequence++, 0x0501, 0, date, time),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                 ], callback);
@@ -623,7 +230,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_datetime = function(callback) {
         self.command(
                 'get_datetime',
-                pack("<SW_W>*", sequence++, 0x0502, 0),
+                self.common.pack("<SW_W>*", sequence++, 0x0502, 0),
                 '<SW_W__W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'date', 'time',
@@ -634,7 +241,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_fiscal_data = function(print, callback) {
         self.command(
                 'get_fiscal_data',
-                pack("<SW_W>*", sequence++, 0x0507, print && 1),
+                self.common.pack("<SW_W>*", sequence++, 0x0507, print && 1),
                 '<SW_W__W__P_N_N_L_R_N_A_A_R_A_N_N_N_D_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'razonSocial', 'cuit', 'caja', 'ivaResposabilidad',
@@ -647,7 +254,7 @@ var epson_e_ar = function(interface, sequence) {
     this.set_header_lines = function(lineno, text, callback) {
         self.command(
                 'set_header_lines',
-                pack("<SW_W_N30_R>*", sequence++, 0x0508, 0x0000, lineno, text),
+                self.common.pack("<SW_W_N30_R>*", sequence++, 0x0508, 0x0000, lineno, text),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -657,7 +264,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_header_lines = function(lineno, callback) {
         self.command(
                 'get_header_lines',
-                pack("<SW_W_N30>*", sequence++, 0x0509, 0x0000, lineno),
+                self.common.pack("<SW_W_N30>*", sequence++, 0x0509, 0x0000, lineno),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'text'],
                 callback);
@@ -667,7 +274,7 @@ var epson_e_ar = function(interface, sequence) {
     this.set_footer_lines = function(lineno, text, callback) {
         self.command(
                 'set_footer_lines',
-                pack("<SW_W_N30_R>*", sequence++, 0x050A, 0x0000, lineno, text),
+                self.common.pack("<SW_W_N30_R>*", sequence++, 0x050A, 0x0000, lineno, text),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -677,7 +284,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_footer_lines = function(lineno, callback) {
         self.command(
                 'get_footer_lines',
-                pack("<SW_W_N30>*", sequence++, 0x050B, 0x0000, lineno),
+                self.common.pack("<SW_W_N30>*", sequence++, 0x050B, 0x0000, lineno),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'text'],
                 callback);
@@ -687,7 +294,7 @@ var epson_e_ar = function(interface, sequence) {
     this.set_pos_info = function(line, value, callback) {
         self.command(
                 'set_pos_info',
-                pack("<SW_W_R>*", sequence++, 0x050E, line, value),
+                self.common.pack("<SW_W_R>*", sequence++, 0x050E, line, value),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -697,7 +304,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_pos_info = function(line, callback) {
         self.command(
                 'get_pos_info',
-                pack("<SW_W>*", sequence++, 0x050F, line),
+                self.common.pack("<SW_W>*", sequence++, 0x050F, line),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'value'],
                 callback);
@@ -707,7 +314,7 @@ var epson_e_ar = function(interface, sequence) {
     this._init_load_logo = function(width, height, quantity, callback) {
         self.command(
                 'init_load_logo',
-                pack("<SW_W_W_W_N10>*", sequence++, 0x0530, 0x0000,
+                self.common.pack("<SW_W_W_W_N10>*", sequence++, 0x0530, 0x0000,
                     width, height, quantity),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -718,7 +325,7 @@ var epson_e_ar = function(interface, sequence) {
     this._load_logo = function(bitmap, callback) {
         self.command(
                 'logo_load',
-                pack("<SW_W_B>*", sequence++, 0x0531, 0x0000,
+                self.common.pack("<SW_W_B>*", sequence++, 0x0531, 0x0000,
                     bitmap),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -729,7 +336,7 @@ var epson_e_ar = function(interface, sequence) {
     this._finish_load_logo = function(callback) {
         self.command(
                 'finish_logo_load',
-                pack("<SW_W>*", sequence++, 0x0532, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0532, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -739,7 +346,7 @@ var epson_e_ar = function(interface, sequence) {
     this._cancel_load_logo = function(callback) {
         self.command(
                 'cancel_logo_load',
-                pack("<SW_W>*", sequence++, 0x0533, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0533, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -749,7 +356,7 @@ var epson_e_ar = function(interface, sequence) {
     this._delete_logo = function(callback) {
         self.command(
                 'delete_logo',
-                pack("<SW_W>*", sequence++, 0x0534, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0534, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -759,7 +366,7 @@ var epson_e_ar = function(interface, sequence) {
     this.set_max_amount = function(amount, callback) {
         self.command(
                 'set_max_amount',
-                pack("<SW_W_N92>*", sequence++, 0x0540, 0x0000,
+                self.common.pack("<SW_W_N92>*", sequence++, 0x0540, 0x0000,
                     amount),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -770,7 +377,7 @@ var epson_e_ar = function(interface, sequence) {
     this.set_payment_report = function(active, callback) {
         self.command(
                 'set_payment_report',
-                pack("<SW_W>*", sequence++, 0x0552, active && 1),
+                self.common.pack("<SW_W>*", sequence++, 0x0552, active && 1),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -780,7 +387,7 @@ var epson_e_ar = function(interface, sequence) {
     this.get_payment_report = function(active, callback) {
         self.command(
                 'get_payment_report',
-                pack("<SW_W>*", sequence++, 0x0553, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0553, 0x0000),
                 '<SW_W__W__N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'active'],
@@ -791,7 +398,7 @@ var epson_e_ar = function(interface, sequence) {
     this._advance_paper = function(station, lines, callback) {
         self.command(
                 'advance_paper',
-                pack("<SW_W_N20>*", sequence++, 0x0701, station & 0x0003, lines),
+                self.common.pack("<SW_W_N20>*", sequence++, 0x0701, station & 0x0003, lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -801,7 +408,7 @@ var epson_e_ar = function(interface, sequence) {
     this._cut_paper = function(callback) {
         self.command(
                 'cut_paper',
-                pack("<SW_W>*", sequence++, 0x0702, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0702, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -812,7 +419,7 @@ var epson_e_ar = function(interface, sequence) {
         var ext = (showinfo && 0x0800) + (showheadfoot && 0x0400);
         self.command(
                 'z_report',
-                pack("<SW_W>*", sequence++, 0x0801, 0x0C00),
+                self.common.pack("<SW_W>*", sequence++, 0x0801, 0x0C00),
                 '<SW_W__W__W>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'closeNumber'],
@@ -824,7 +431,7 @@ var epson_e_ar = function(interface, sequence) {
         var ext = (showinfo && 0x0800) + (showheadfoot && 0x0400) + (print && 0x0001);
         self.command(
                 'x_report',
-                pack("<SW_W>*", sequence++, 0x0802, ext),
+                self.common.pack("<SW_W>*", sequence++, 0x0802, ext),
                 '<SW_W__W__W>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'closeNumber'],
@@ -836,7 +443,7 @@ var epson_e_ar = function(interface, sequence) {
         var ext = (from_last_x && 0x0001);
         self.command(
                 'get_fiscal_information',
-                pack("<SW_W>*", sequence++, 0x080A, ext),
+                self.common.pack("<SW_W>*", sequence++, 0x080A, ext),
                 '<SW_W__W__D_T_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_Y>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'date_open_fiscal_journal', // 1
@@ -877,7 +484,7 @@ var epson_e_ar = function(interface, sequence) {
     this._get_counters = function(callback) {
         self.command(
                 'get_counters',
-                pack("<SW_W>*", sequence++, 0x0830, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0830, 0x0000),
                 '<SW_W__W__N_N_N_N_N_N_N_N_N_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'last_z_report',                  // 1
@@ -942,7 +549,7 @@ var epson_e_ar = function(interface, sequence) {
 
         self.command(
                 'open_fiscal_ticket',
-                pack("<SW_W_R_R_R_R_R_L_A_L_R_R_R>*", sequence++, 0x0B01, ext,
+                self.common.pack("<SW_W_R_R_R_R_R_L_A_L_R_R_R>*", sequence++, 0x0B01, ext,
                         partner_name,
                         partner_name_2,
                         partner_address,
@@ -1035,7 +642,7 @@ var epson_e_ar = function(interface, sequence) {
                   (first_line_label                      && 0x2000);
         self.command(
                 'item_fiscal_ticket',
-                pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0B02, ext,
+                self.common.pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0B02, ext,
                         description,
                         description_2,
                         description_3,
@@ -1079,7 +686,7 @@ var epson_e_ar = function(interface, sequence) {
                   (type == 'both'  && 0x000A);
         self.command(
                 'subtotal_fiscal_ticket',
-                pack("<SW_W>*", sequence++, 0x0B03, ext),
+                self.common.pack("<SW_W>*", sequence++, 0x0B03, ext),
                 '<SW_W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'gross',
@@ -1109,7 +716,7 @@ var epson_e_ar = function(interface, sequence) {
                   (type == 'charge'   && 0x0001);
         self.command(
                 'discount_charge_fiscal_ticket',
-                pack("<SW_W_R_NA2>*", sequence++, 0x0B04, ext,
+                self.common.pack("<SW_W_R_NA2>*", sequence++, 0x0B04, ext,
                     description,
                     amount),
                 '<SW_W__N>*',
@@ -1149,7 +756,7 @@ var epson_e_ar = function(interface, sequence) {
                   (type == 'card_pay'                && 0x0004);
         self.command(
                 'pay_fiscal_ticket',
-                pack("<SW_W_R_R_NA2>*", sequence++, 0x0B05, ext,
+                self.common.pack("<SW_W_R_R_NA2>*", sequence++, 0x0B05, ext,
                     extra_description,
                     description,
                     amount),
@@ -1209,7 +816,7 @@ var epson_e_ar = function(interface, sequence) {
                   (print_quantities                      && 0x0100);
         self.command(
                 'close_fiscal_ticket',
-                pack("<SW_W_N30_R_N30_R_N30_R>*", sequence++, 0x0B06, ext,
+                self.common.pack("<SW_W_N30_R_N30_R_N30_R>*", sequence++, 0x0B06, ext,
                         tail_no,
                         tail_text,
                         tail_no_2,
@@ -1241,7 +848,7 @@ var epson_e_ar = function(interface, sequence) {
     this._cancel_fiscal_ticket = function(callback) {
         self.command(
                 'cancel_fiscal_ticket',
-                pack("<SW_W>*", sequence++, 0x0B07, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0B07, 0x0000),
                 '<SW_W__N_L>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'document_number',
@@ -1609,15 +1216,15 @@ var epson_e_ar = function(interface, sequence) {
     };
 };
 
-function epson_ar_open(device, port, callback) {
-    console.debug("EPSON: Constructor");
+function epson_e_ar_open(device, port, callback) {
+    console.debug("EPSON: Rev E Constructor");
     if (port == 'usb') {
         var inter = new usb(device);
-        inter.open(function(inter){ callback(new epson_ar(inter)); });
+        inter.open(function(inter){ callback(new epson_e_ar(inter)); });
     } else 
     if (port == 'serial') {
         var inter = new serial(device);
-        inter.open(function(inter){ callback(new epson_ar(inter)); });
+        inter.open(function(inter){ callback(new epson_e_ar(inter)); });
     };
 };
 

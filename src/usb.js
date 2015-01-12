@@ -6,16 +6,19 @@ var usb = function(device) {
     self.device = device;
     self.handle = null;
     self.type = 'usb';
+    self.interface = 0;
 
     this.open = function(callback) {
         var self = this;
         var callback = callback;
         chrome.usb.openDevice(device, function(handle) {
             self.handle = handle;
-            chrome.usb.claimInterface(self.handle, 0, function() {
-                chrome.usb.claimInterface(self.handle, 1, function() {
-                    callback(self);
-                });
+            chrome.usb.claimInterface(self.handle, self.interface, function() {
+                if (chrome.runtime.lastError) {
+                    return 0;   
+                } else {
+                    return callback(self);
+                }
             });
         });
     };
