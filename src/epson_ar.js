@@ -1528,7 +1528,7 @@ var epson_ar = function(interface, sequence) {
             console.error(res.strResult);
             callback({'error': 'Cant open ticket:' + res.strResult});
         } else
-        async.eachSeries(ticket.lines,
+        async.eachSeries(ticket.lines || [],
             function(line, _callback_){
             self._item_fiscal_ticket(
                     line.item_action || "sale_item",
@@ -1558,7 +1558,7 @@ var epson_ar = function(interface, sequence) {
                     }
                 );
             }, function() {
-        async.eachSeries(ticket.payments,
+        async.eachSeries(ticket.payments || [],
             function(pay, _callback_){
             self._pay_fiscal_ticket(
                     pay.type,

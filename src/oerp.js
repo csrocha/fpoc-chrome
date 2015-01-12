@@ -46,6 +46,8 @@ oerpSession = function(server, session_id) {
         };
         receptor.onerror = function(ev) {
             console.log("SERVER EVENT ERROR!!!!", ev);
+            parser.href = ev.srcElement.url;
+            args = parser.search;
             return_callback("error", ev);
         };
         receptor.onmessage = function(ev) {
@@ -346,28 +348,37 @@ oerpSession = function(server, session_id) {
         console.debug('[SES] Updating printers.');
         // Take printers
         var push_printers = function(keys, printers, _callback) {
-            if (session_id && keys.length && self.uid) {
-                self._call('fpoc.fiscal_printer', 'search',
-                        [ [['name','in',keys]] ], {}, function(e, fps) {
-                            if (e == 'error') {
-                                async.each(takeKeys(self.printers), function(key, __callback) {
-                                    self.printers[key].is_connected = false;
-                                    __callback();
-                                });
-                            } else {
-                                var d = new Date();
-                                async.each(fps, function(fp, __callback) {
-                                    self._call('fpoc.fiscal_printer', 'write',
-                                        [ fp, {
-                                            'session_id':self.session_id,
-                                            'lastUpdate': d,
-                                        } ], {}, function(e, r) { __callback(); });
-                                }, _callback);
-                            }
-                        })
-            } else {
-                _callback();
-            };
+            var _keys=[];
+            // Ignore connected printers
+            async.each(keys, function(k, __callback) {
+                if (!self.printers[k].is_connected) {
+                    _keys.push(k);
+                }
+                __callback();
+            }, function() {
+                if (session_id && _keys.length && self.uid) {
+                    self._call('fpoc.fiscal_printer', 'search',
+                            [ [['name','in',_keys]] ], {}, function(e, fps) {
+                                if (e == 'error') {
+                                    async.each(takeKeys(self.printers), function(key, __callback) {
+                                        self.printers[key].is_connected = false;
+                                        __callback();
+                                    });
+                                } else {
+                                    var d = new Date();
+                                    async.each(fps, function(fp, __callback) {
+                                        self._call('fpoc.fiscal_printer', 'write',
+                                            [ fp, {
+                                                'session_id':self.session_id,
+                                                'lastUpdate': d,
+                                            } ], {}, function(e, r) { __callback(); });
+                                    }, _callback);
+                                }
+                            })
+                } else {
+                    _callback();
+                };
+            });
         };
 
         var publish_printers = function(printers) {
