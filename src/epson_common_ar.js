@@ -1,7 +1,7 @@
 // Protocolo EPSON, common definitions
 
-var epson_ar_common = function(sequence_start, sequence_size){
-    this.common = new epson_common(sequence_start, sequence_size);
+var epson_ar_common = function(interface, sequence_start, sequence_size){
+    this.common = new epson_common(interface, sequence_start, sequence_size);
 
 	var result_messages = {
 		0x0000:"Resultado exitoso",

@@ -3,13 +3,17 @@
 //
 
 var session = null;
+var pooling_time = 300;
 
 // Function searching for new printers or remove then if disconnected.
 function poolingPrinter() {
     setTimeout(function(){
-       console.debug("[FP] Pooling for printers");
-       session.update(poolingPrinter);
-    }, 6000);
+            if (session) {
+                console.debug("[FP] Pooling for printers");
+                session.update(poolingPrinter);
+                pooling_time = 6000;
+            }
+        }, pooling_time);
 };
 
 function open_status(sess) {

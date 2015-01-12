@@ -1,6 +1,6 @@
 // Protocolo EPSON, common definitions
 
-var epson_common = function(sequence_start, sequence_size) {
+var epson_common = function(interface, sequence_start, sequence_size) {
 	var STX = 0x02
 	var ETX = 0x03
 	var R01 = 0x1A
@@ -12,8 +12,10 @@ var epson_common = function(sequence_start, sequence_size) {
 	var ToEscape = [ STX, ETX, R01, ESC, FLD, R02, R03, R04 ];
     var SymbolMap = { '<': STX, '>': ETX, '_': FLD, };
 
+    this.interface=interface;
     this.sequence_start=sequence_start;
     this.sequence_size=sequence_size;
+    this.ackbuf = new Uint8Array([0x06]);
 
 	this.extend = function(destination, source) {
       var self = this;
@@ -193,5 +195,80 @@ var epson_common = function(sequence_start, sequence_size) {
 	    }
 	    return r;
 	};
+
+    this.sendACK = function(callback) {
+        self = this;
+        self.interface.send(self.ackbuf.buffer, function(info) { callback(info.resultCode == 0); });
+    };
+
+    this.waitResponse = function(types, fields, callback) {
+        self = this;
+        var local_callback = function(info) {
+                if (info && info.resultCode == 0) {
+                    var dv = new DataView(info.data);
+                    if (info.data.byteLength==0) {
+                        self.waitResponse(types, fields, callback);
+                    } else 
+                    if (info.data.byteLength==1 && dv.getUint8(0) == 0x15) {
+                        console.error("USB-NACK");
+                        self.sendACK(self.waitResponse.bind(self, types, fields, callback));
+                        console.error("Recovering");
+                        sequence = 0;
+                        callback({'error': 'NACK'});
+                    } else
+                    if (info.data.byteLength==1 && dv.getUint8(0) == 0x06) {
+                        self.sendACK(self.waitResponse.bind(self, types, fields, callback));
+                    } else 
+                    if (info.data.byteLength>1 && dv.getUint8(1) == 0x80) {
+                        self.sendACK(function(res){
+                            self.waitResponse(types, fields, callback);
+                        });
+                    } else
+                    if (info.data.byteLength>1) {
+                        self.sendACK(function(res){
+                            callback(self.unpack(types, fields, info.data));
+                        });
+                    };
+                } else {
+                    callback();
+                };
+            };
+        self.interface.receive(local_callback);
+    };
+
+    this.command = function(name, in_pack, out_types, out_dict, callback) {
+        var self=this;
+        var callback = callback;
+        
+        if (self.busy) {
+            setTimeout(function() { 
+                self.command(name, in_pack, out_types, out_dict, callback);
+            }, 5);
+            return;
+        } else {
+            self.busy++;
+        }
+
+        var local_callback = function(response) {
+            self.busy--;
+            callback(response);
+        };
+        self.interface.alive(
+                function() {
+                    var __callback__ = function(info) {
+                        if (info && info.resultCode == 0) {
+                            self.waitResponse(out_types, out_dict, local_callback);
+                        } else {
+                            local_callback();
+                        }
+                    };
+                    self.interface.send(in_pack, __callback__);
+                }, function() {
+                    local_callback();
+                });
+    };
+
+
+
 };
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

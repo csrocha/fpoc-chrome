@@ -1,58 +1,14 @@
 // Protocolo EPSON, Revision D (11/06/2010)
 
 var epson_d_ar = function(interface, sequence) {
-    var sequence = typeof sequence !== 'undefined' ? sequence : 0;
     var self = this;
-    var ackbuf = new Uint8Array([0x06]);
+    var sequence = typeof sequence !== 'undefined' ? sequence : 0;
 
+    this.ar = new epson_ar_common(interface, 0x20,0x5f);
     this.protocol = 'epson_d_ar';
     this.interface = interface;
     this.busy = 0;
-
-    this.sendACK = function(callback) {
-        this.interface.send(ackbuf.buffer, function(info) { callback(info.resultCode == 0); });
-    };
-
-    this.waitResponse = function(types, fields, callback) {
-        var local_callback = function(info) {
-                if (info && info.resultCode == 0) {
-                    var dv = new DataView(info.data);
-                    if (info.data.byteLength==0) {
-                        self.waitResponse(types, fields, callback);
-                    } else 
-                    if (info.data.byteLength==1 && dv.getUint8(0) == 0x15) {
-                        console.error("USB-NACK");
-                        self.sendACK(self.waitResponse.bind(self, types, fields, callback));
-                        console.error("Recovering");
-                        sequence = 0;
-                        callback({'error': 'NACK'});
-                    } else
-                    if (info.data.byteLength==1 && dv.getUint8(0) == 0x06) {
-                        self.sendACK(self.waitResponse.bind(self, types, fields, callback));
-                    } else 
-                    if (info.data.byteLength>1 && dv.getUint8(1) == 0x80) {
-                        self.sendACK(function(res){
-                            self.waitResponse(types, fields, callback);
-                        });
-                    } else
-                    if (info.data.byteLength>1) {
-                        self.sendACK(function(res){
-                            callback(unpack(types, fields, info.data));
-                        });
-                    };
-                } else {
-                    callback();
-                };
-            };
-        self.interface.receive(local_callback);
-    };
-
-    this.close = function(callback) {
-        self.interface.close(function() {
-            console.debug("EPSON: Device closed");
-            if (callback) callback();
-        });
-    };
+    this.command = this.common.command;
 
     // Values | Enums
     this.speed = {
@@ -68,64 +24,47 @@ var epson_d_ar = function(interface, sequence) {
         'slip'  : 1,
     };
 
-    this.command = function(name, in_pack, out_types, out_dict, callback) {
-        var self=this;
-        var callback = callback;
-        
-        if (self.busy) {
-            setTimeout(function() { 
-                self.command(name, in_pack, out_types, out_dict, callback);
-            }, 5);
-            return;
-        } else {
-            self.busy++;
-        }
+    this.close = function(callback) {
+        self.interface.close(function() {
+            console.debug("EPSON: Device closed");
+            if (callback) callback();
+        });
+    };
 
-        var local_callback = function(response) {
+    this.command_callback = function(callback) {
+        var self = this;
+        return function(response) {
             if (response && response.printerStatus != null) { 
-                extend(response, printerState(response.printerStatus));
-                response.strPrinterStatus = printerStateString(response.printerStatus);
+                self.common.extend(response, self.ar.printerState(response.printerStatus));
+                response.strPrinterStatus = self.ar.printerStateString(response.printerStatus);
             };
             if (response && response.fiscalStatus != null) {
-                extend(response, fiscalState(response.fiscalStatus));
-                response.strFiscalStatus = fiscalStateString(response.fiscalStatus);
+                self.common.extend(response, self.ar.fiscalState(response.fiscalStatus));
+                response.strFiscalStatus = self.ar.fiscalStateString(response.fiscalStatus);
             };
             if (response && response.result) {
                 response.strResult = result_messages[response.result];
             };
-            self.busy--;
             callback(response);
-        };
-        self.interface.alive(
-                function() {
-                    var __callback__ = function(info) {
-                        if (info && info.resultCode == 0) {
-                            self.waitResponse(out_types, out_dict, local_callback);
-                        } else {
-                            local_callback();
-                        }
-                    };
-                    self.interface.send(in_pack, __callback__);
-                }, function() {
-                    local_callback();
-                });
+        }
     };
 
     // 6.1.1 Obtener Estado (00 01)
     this._get_status = function(callback) {
-       self.command(
+       var self = this;
+       self.common.command(
                 'get_status',
-                pack("<SW_W>*", sequence++, 0x0001, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0001, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
-                callback);
+                self.command_callback);
     };
 
     // 6.1.2 Obtener Error de Inicio (00 03)
     this.get_init_error = function(callback) {
-        self.command(
+        self.common.command(
                 'get_init_error',
-                pack("<SW_W>*", sequence++, 0x0003, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0003, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -133,9 +72,9 @@ var epson_d_ar = function(interface, sequence) {
     
     // 6.1.3 Obtener Error de Proceso Interno (00 04)
     this.get_internal_error = function(callback) {
-        self.command(
+        self.common.command(
                 'get_internal_error',
-                pack("<SW_W>*", sequence++, 0x0004, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0004, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -143,9 +82,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.1.4 Obtener ID (00 05)
     this.get_id = function(callback) {
-        self.command(
+        self.common.command(
                 'get_id',
-                pack("<SW_W>*", sequence++, 0x0005, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0005, 0x0000),
                 '<SW_W__W__P_A_L_P_N_N_N_N_N_N_Y_Y_Y_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                 'model', 'serialNumber', 'firmwareName', 'firmwareVersion',
@@ -157,9 +96,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.1.5 Configurar Velocidad de Comunicación (Host Port) (00 0A)
     this.set_com_speed = function(speed, callback) {
-        self.command(
+        self.common.command(
                 'set_com_speed',
-                pack("<SW_W>*", sequence++, 0x0005, speed),
+                self.common.pack("<SW_W>*", sequence++, 0x0005, speed),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -167,9 +106,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.2.1 Reporte de Diagnóstico e Información del Equipo (02 01)
     this._print_diag_report = function(station, callback) {
-        self.command(
+        self.common.command(
                 '_print_diag_report',
-                pack("<SW_W>*", sequence++, 0x0201, station),
+                self.common.pack("<SW_W>*", sequence++, 0x0201, station),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -177,9 +116,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.2.2 Ripple Test (02 04)
     this._ripple_test = function(station, no_lines, callback) {
-        self.command(
+        self.common.command(
                 '_ripple_test',
-                pack("<SW_W_N30>*", sequence++, 0x0204, station, no_lines),
+                self.common.pack("<SW_W_N30>*", sequence++, 0x0204, station, no_lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -187,9 +126,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.2.3 Obtener Información del Equipo (02 0A)
     this.print_fiscal_report = function(print, callback) {
-        self.command(
+        self.common.command(
                 'print_fiscal_report',
-                pack("<SW_W>*", sequence++, 0x020A, print && 1),
+                self.common.pack("<SW_W>*", sequence++, 0x020A, print && 1),
                 '<SW_W__W__A_N_N_N_N_N_P_N_N_N_Y_B>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'versionName', 'idCountry',
@@ -202,9 +141,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.2.4 Tique Técnico (02 10)
     this._print_technical_ticket = function(callback) {
-        self.command(
+        self.common.command(
                 '_print_technical_ticket',
-                pack("<SW_W>*", sequence++, 0x0210, 0),
+                self.common.pack("<SW_W>*", sequence++, 0x0210, 0),
                 '<SW_W__W__N_N_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'ticketNumber', 'totalAmount',
@@ -214,9 +153,9 @@ var epson_d_ar = function(interface, sequence) {
     
     // 6.3.1 Configurar Fecha y Hora (05 01)
     this._set_datetime = function(date, time, callback) {
-        self.command(
+        self.common.command(
                 'set_datetime',
-                pack("<SW_W_D_T>*", sequence++, 0x0501, 0, date, time),
+                self.common.pack("<SW_W_D_T>*", sequence++, 0x0501, 0, date, time),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                 ], callback);
@@ -224,9 +163,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.2 Obtener Configuración de Fecha y Hora (05 02)
     this.get_datetime = function(callback) {
-        self.command(
+        self.common.command(
                 'get_datetime',
-                pack("<SW_W>*", sequence++, 0x0502, 0),
+                self.common.pack("<SW_W>*", sequence++, 0x0502, 0),
                 '<SW_W__W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'date', 'time',
@@ -235,9 +174,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.3 Obtener Datos de Fiscalización (05 07)
     this.get_fiscal_data = function(print, callback) {
-        self.command(
+        self.common.command(
                 'get_fiscal_data',
-                pack("<SW_W>*", sequence++, 0x0507, print && 1),
+                self.common.pack("<SW_W>*", sequence++, 0x0507, print && 1),
                 '<SW_W__W__P_N_N_L_R_N_A_A_R_A_N_N_N_D_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'razonSocial', 'cuit', 'caja', 'ivaResposabilidad',
@@ -248,9 +187,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.4 Configurar Líneas de Encabezado (05 08)
     this.set_header_lines = function(lineno, text, callback) {
-        self.command(
+        self.common.command(
                 'set_header_lines',
-                pack("<SW_W_N30_R>*", sequence++, 0x0508, 0x0000, lineno, text),
+                self.common.pack("<SW_W_N30_R>*", sequence++, 0x0508, 0x0000, lineno, text),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -258,9 +197,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.5 Obtener Configuración de Líneas de Encabezado (05 09)
     this.get_header_lines = function(lineno, callback) {
-        self.command(
+        self.common.command(
                 'get_header_lines',
-                pack("<SW_W_N30>*", sequence++, 0x0509, 0x0000, lineno),
+                self.common.pack("<SW_W_N30>*", sequence++, 0x0509, 0x0000, lineno),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'text'],
                 callback);
@@ -268,9 +207,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.6 Configurar Líneas de Cola (05 0A)
     this.set_footer_lines = function(lineno, text, callback) {
-        self.command(
+        self.common.command(
                 'set_footer_lines',
-                pack("<SW_W_N30_R>*", sequence++, 0x050A, 0x0000, lineno, text),
+                self.common.pack("<SW_W_N30_R>*", sequence++, 0x050A, 0x0000, lineno, text),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -278,9 +217,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.7 Obtener Configuración de Líneas de Cola (05 0B)
     this.get_footer_lines = function(lineno, callback) {
-        self.command(
+        self.common.command(
                 'get_footer_lines',
-                pack("<SW_W_N30>*", sequence++, 0x050B, 0x0000, lineno),
+                self.common.pack("<SW_W_N30>*", sequence++, 0x050B, 0x0000, lineno),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'text'],
                 callback);
@@ -288,9 +227,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.8 Configurar Líneas de Información del Establecimiento (05 0E)
     this.set_pos_info = function(line, value, callback) {
-        self.command(
+        self.common.command(
                 'set_pos_info',
-                pack("<SW_W_R>*", sequence++, 0x050E, line, value),
+                self.common.pack("<SW_W_R>*", sequence++, 0x050E, line, value),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -298,9 +237,9 @@ var epson_d_ar = function(interface, sequence) {
     
     // 6.3.9 Obtener Líneas de Información del Establecimiento (05 0F)
     this.get_pos_info = function(line, callback) {
-        self.command(
+        self.common.command(
                 'get_pos_info',
-                pack("<SW_W>*", sequence++, 0x050F, line),
+                self.common.pack("<SW_W>*", sequence++, 0x050F, line),
                 '<SW_W__W__R>*',
                 ['printerStatus', 'fiscalStatus', 'result', 'value'],
                 callback);
@@ -308,9 +247,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.10 Iniciar Carga de Logo de Usuario (05 30)
     this._init_load_logo = function(width, height, quantity, callback) {
-        self.command(
+        self.common.command(
                 'init_load_logo',
-                pack("<SW_W_W_W_N10>*", sequence++, 0x0530, 0x0000,
+                self.common.pack("<SW_W_W_W_N10>*", sequence++, 0x0530, 0x0000,
                     width, height, quantity),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -319,9 +258,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.11 Enviar Datos de Logo del Usuario (05 31)
     this._load_logo = function(bitmap, callback) {
-        self.command(
+        self.common.command(
                 'logo_load',
-                pack("<SW_W_B>*", sequence++, 0x0531, 0x0000,
+                self.common.pack("<SW_W_B>*", sequence++, 0x0531, 0x0000,
                     bitmap),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -330,9 +269,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.12 Terminar Carga de Logo del Usuario (05 32)
     this._finish_load_logo = function(callback) {
-        self.command(
+        self.common.command(
                 'finish_logo_load',
-                pack("<SW_W>*", sequence++, 0x0532, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0532, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -340,9 +279,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.13 Cancelar Carga de Logo del Usuario (05 33)
     this._cancel_load_logo = function(callback) {
-        self.command(
+        self.common.command(
                 'cancel_logo_load',
-                pack("<SW_W>*", sequence++, 0x0533, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0533, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -350,9 +289,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.14 Eliminar Logo del Usuario (05 34)
     this._delete_logo = function(callback) {
-        self.command(
+        self.common.command(
                 'delete_logo',
-                pack("<SW_W>*", sequence++, 0x0534, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0534, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -360,9 +299,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.15 Configurar Monto Máximo de Tique-Factura / Nota de Crédito (05 40)
     this.set_max_amount = function(amount, callback) {
-        self.command(
+        self.common.command(
                 'set_max_amount',
-                pack("<SW_W_N92>*", sequence++, 0x0540, 0x0000,
+                self.common.pack("<SW_W_N92>*", sequence++, 0x0540, 0x0000,
                     amount),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -371,9 +310,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.3.16 Impresión de arqueo de pagos (05 52)
     this.set_payment_report = function(active, callback) {
-        self.command(
+        self.common.command(
                 'set_payment_report',
-                pack("<SW_W>*", sequence++, 0x0552, active && 1),
+                self.common.pack("<SW_W>*", sequence++, 0x0552, active && 1),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -381,9 +320,9 @@ var epson_d_ar = function(interface, sequence) {
     
     // 6.3.17 Obtener estado de impresión de arqueo de pagos (05 53)
     this.get_payment_report = function(active, callback) {
-        self.command(
+        self.common.command(
                 'get_payment_report',
-                pack("<SW_W>*", sequence++, 0x0553, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0553, 0x0000),
                 '<SW_W__W__N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'active'],
@@ -392,9 +331,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.4.1 Avanzar Papel (07 01)
     this._advance_paper = function(station, lines, callback) {
-        self.command(
+        self.common.command(
                 'advance_paper',
-                pack("<SW_W_N20>*", sequence++, 0x0701, station & 0x0003, lines),
+                self.common.pack("<SW_W_N20>*", sequence++, 0x0701, station & 0x0003, lines),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -402,9 +341,9 @@ var epson_d_ar = function(interface, sequence) {
     
     // 6.4.2 Cortar Papel (07 02)
     this._cut_paper = function(callback) {
-        self.command(
+        self.common.command(
                 'cut_paper',
-                pack("<SW_W>*", sequence++, 0x0702, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0702, 0x0000),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
@@ -413,9 +352,9 @@ var epson_d_ar = function(interface, sequence) {
     // 6.5.1 Reporte Z (08 01)
     this._z_report = function(showheadfoot, showinfo, callback) {
         var ext = (showinfo && 0x0800) + (showheadfoot && 0x0400);
-        self.command(
+        self.common.command(
                 'z_report',
-                pack("<SW_W>*", sequence++, 0x0801, 0x0C00),
+                self.common.pack("<SW_W>*", sequence++, 0x0801, 0x0C00),
                 '<SW_W__W__W>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'closeNumber'],
@@ -425,9 +364,9 @@ var epson_d_ar = function(interface, sequence) {
     // 6.5.2 Reporte X (08 02)
     this._x_report = function(showheadfoot, showinfo, print, callback) {
         var ext = (showinfo && 0x0800) + (showheadfoot && 0x0400) + (print && 0x0001);
-        self.command(
+        self.common.command(
                 'x_report',
-                pack("<SW_W>*", sequence++, 0x0802, ext),
+                self.common.pack("<SW_W>*", sequence++, 0x0802, ext),
                 '<SW_W__W__W>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'closeNumber'],
@@ -437,9 +376,9 @@ var epson_d_ar = function(interface, sequence) {
     // 6.5.4 Información Electrónica General de la Jornada Fiscal en Curso (08 0A)
     this._get_fiscal_information = function(from_last_x, callback) {
         var ext = (from_last_x && 0x0001);
-        self.command(
+        self.common.command(
                 'get_fiscal_information',
-                pack("<SW_W>*", sequence++, 0x080A, ext),
+                self.common.pack("<SW_W>*", sequence++, 0x080A, ext),
                 '<SW_W__W__D_T_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_N_Y>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'date_open_fiscal_journal', // 1
@@ -478,9 +417,9 @@ var epson_d_ar = function(interface, sequence) {
 
     // 6.5.23 Información de Contadores (08 30)
     this._get_counters = function(callback) {
-        self.command(
+        self.common.command(
                 'get_counters',
-                pack("<SW_W>*", sequence++, 0x0830, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0830, 0x0000),
                 '<SW_W__W__N_N_N_N_N_N_N_N_N_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'last_z_report',                  // 1
@@ -543,9 +482,9 @@ var epson_d_ar = function(interface, sequence) {
             (turist_ticket               && 0x1000) |
             (debit_note                  && 0x2000);
 
-        self.command(
+        self.common.command(
                 'open_fiscal_ticket',
-                pack("<SW_W_R_R_R_R_R_L_A_L_R_R_R>*", sequence++, 0x0B01, ext,
+                self.common.pack("<SW_W_R_R_R_R_R_L_A_L_R_R_R>*", sequence++, 0x0B01, ext,
                         partner_name,
                         partner_name_2,
                         partner_address,
@@ -636,9 +575,9 @@ var epson_d_ar = function(interface, sequence) {
                   (collect_type == 'none'                && 0x0080) |
                   (large_label                           && 0x1000) |
                   (first_line_label                      && 0x2000);
-        self.command(
+        self.common.command(
                 'item_fiscal_ticket',
-                pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0B02, ext,
+                self.common.pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0B02, ext,
                         description,
                         description_2,
                         description_3,
@@ -680,9 +619,9 @@ var epson_d_ar = function(interface, sequence) {
                   (type == 'gross' && 0x0004) |
                   (type == 'net'   && 0x0008) |
                   (type == 'both'  && 0x000A);
-        self.command(
+        self.common.command(
                 'subtotal_fiscal_ticket',
-                pack("<SW_W>*", sequence++, 0x0B03, ext),
+                self.common.pack("<SW_W>*", sequence++, 0x0B03, ext),
                 '<SW_W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'gross',
@@ -710,9 +649,9 @@ var epson_d_ar = function(interface, sequence) {
             callback) {
         var ext = (type == 'discount' && 0x0000) |
                   (type == 'charge'   && 0x0001);
-        self.command(
+        self.common.command(
                 'discount_charge_fiscal_ticket',
-                pack("<SW_W_R_NA2>*", sequence++, 0x0B04, ext,
+                self.common.pack("<SW_W_R_NA2>*", sequence++, 0x0B04, ext,
                     description,
                     amount),
                 '<SW_W__N>*',
@@ -750,9 +689,9 @@ var epson_d_ar = function(interface, sequence) {
         var ext = (type == 'null_pay'                && 0x0001) |
                   (type == 'no_include_cash_count'   && 0x0002) |
                   (type == 'card_pay'                && 0x0004);
-        self.command(
+        self.common.command(
                 'pay_fiscal_ticket',
-                pack("<SW_W_R_R_NA2>*", sequence++, 0x0B05, ext,
+                self.common.pack("<SW_W_R_R_NA2>*", sequence++, 0x0B05, ext,
                     extra_description,
                     description,
                     amount),
@@ -810,9 +749,9 @@ var epson_d_ar = function(interface, sequence) {
                   (print_return_attribute                && 0x0004) |
                   (current_account_automatic_pay         && 0x0010) |
                   (print_quantities                      && 0x0100);
-        self.command(
+        self.common.command(
                 'close_fiscal_ticket',
-                pack("<SW_W_N30_R_N30_R_N30_R>*", sequence++, 0x0B06, ext,
+                self.common.pack("<SW_W_N30_R_N30_R_N30_R>*", sequence++, 0x0B06, ext,
                         tail_no,
                         tail_text,
                         tail_no_2,
@@ -842,9 +781,9 @@ var epson_d_ar = function(interface, sequence) {
     // document_type = Tipo de tique-factura o nota de débito (‘A’, ‘B’, ‘C’)
     //
     this._cancel_fiscal_ticket = function(callback) {
-        self.command(
+        self.common.command(
                 'cancel_fiscal_ticket',
-                pack("<SW_W>*", sequence++, 0x0B07, 0x0000),
+                self.common.pack("<SW_W>*", sequence++, 0x0B07, 0x0000),
                 '<SW_W__N_L>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'document_number',
