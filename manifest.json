@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Fiscal Printer on the Cloud",
   "short_name": "FPoC",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "default_locale": "es",
   "description": "FPoC publica tu Impresora Fiscal en servidores de la nueve (SaaS), sin necesidad de drivers o software extra.",
   "icons": { "16": "img/icon-16px.png", "128": "img/icon-128px.png" },
@@ -22,6 +22,7 @@
 			  "src/epson_common_ar.js",
 			  "src/epson_d_ar.js",
 			  "src/epson_e_ar.js",
+			  "src/devices.js",
 			  "src/tools.js",
 			  "src/sevents.js",
 			  "src/background.js" ]
@@ -39,11 +40,17 @@
      "usb",
      "serial",
      { "usbDevices": [
-	     { "vendorId": 1208, "productId": 514 }
-	     ] },
-     { "socket": [
-	     "tcp-connect",
-	     "tcp-listen"
-	     ] }
-  ]
+	     { "vendorId": 1208, "productId": 514 },
+	     { "vendorId": 1027, "productId": 24577 }
+	     ]
+     }
+  ],
+  "sockets": {
+    "tcp": {
+      "connect": "*:*"
+    },
+    "tcpServer": {
+      "listen": "*:*"
+    }
+  }
 }

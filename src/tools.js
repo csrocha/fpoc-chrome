@@ -68,13 +68,6 @@ function takeKeys(dict) {
 var local_printers = {};
 var local_devices = {};
 
-var supported_printers = [
-    { port: 'usb', protocol: 'epson_e_ar', vendorId: 1208, productId: 514 },   // TM-U220 AF II (v.22.01) Demeter
-    { port: 'usb', protocol: 'epson_d_ar', vendorId: 1027, productId: 24577 }, // smh/p-441f
-    { port: 'serial', protocol: 'epson_e_ar' }, // TM-U220 AF II (v.22.01) Demeter
-    { port: 'serial', protocol: 'epson_d_ar' }, // TM U220 AF II 
-    ];
-
 var query_local_printers = function(callback, onchange) {
     var change = false;
 
@@ -174,7 +167,7 @@ var query_local_printers = function(callback, onchange) {
             if (remove) {
                 console.debug("[FP] Remove device");
                 change=true;
-                chrome.usb.closeDevice(local_devices[item], function() { 
+                chrome.usb.closeDevice(local_devices[item], function() {
                     async.each(takeKeys(local_printers), function(key, ___callback_) {
                         if (local_devices[item] && local_printers[key] &&
                             local_printers[key].device.handle == local_devices[item].handle) {
@@ -205,7 +198,7 @@ var query_local_printers = function(callback, onchange) {
                         } else {
                             console.warn("[FP] Device is not accessible.");
                             __callback_();
-                        }; 
+                        };
                     });
                 };
             }, callback_);
