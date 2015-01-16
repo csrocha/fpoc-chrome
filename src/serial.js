@@ -23,7 +23,7 @@ var serial = function(device) {
     this.type = 'serial';
 
     this.onReceive = function(receiveInfo) {
-      if (receiveInfo && receiveInfo.connectionId === connection.connectionId) {
+      if (receiveInfo && connection && receiveInfo.connectionId === connection.connectionId) {
         var dataView = new Uint8Array(receiveInfo.data);
         buffer = concatBuf(buffer, receiveInfo.data);
       } // Else, no data to read.
@@ -67,7 +67,7 @@ var serial = function(device) {
     };
 
     this.receive = function(callback, count) {
-        var count = typeof count != 'undefined' ? count : 100;
+        var count = typeof count != 'undefined' ? count : 3;
         var __callback = callback;
         if (count < 0) {
             callback({'resultCode': -1, 'data': null});

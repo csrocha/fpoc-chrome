@@ -36,7 +36,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.extend(response, self.ar.fiscalState(response.fiscalStatus));
                 response.strFiscalStatus = self.ar.fiscalStateString(response.fiscalStatus);
             };
-            if (response && response.result) {
+            if (response && response.result != null) {
                 response.strResult = self.ar.result_messages[response.result];
             };
             callback(response);
@@ -759,7 +759,7 @@ var epson_e_ar = function(interface, sequence) {
                         tail_text_2,
                         tail_no_3,
                         tail_text_3),
-                '<SW_W__W_N_L_N_N_N>*',
+                '<SW_W__W__N_L_N_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'document_number',
                  'document_type',
@@ -785,7 +785,7 @@ var epson_e_ar = function(interface, sequence) {
         self.common.command(
                 'cancel_fiscal_ticket',
                 self.common.pack("<SW_W>*", sequence++, 0x0B07, 0x0000),
-                '<SW_W__N_L>*',
+                '<SW_W__R__N_L>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'document_number',
                  'document_type'],
@@ -1122,7 +1122,7 @@ var epson_e_ar = function(interface, sequence) {
                     line.description_4 || "",
                     line.item_description,
                     line.quantity || 1,
-                    -line.unit_price,
+                    line.unit_price,
                     line.vat_rate || 0,
                     line.fixed_taxes || 0,
                     line.taxes_rate || 0,
@@ -1155,7 +1155,7 @@ var epson_e_ar = function(interface, sequence) {
             }, function() {
             self._close_fiscal_ticket(
                     options.cut_paper || true,
-                    options.electronic_answer || false,
+                    options.electronic_answer || true,
                     options.print_return_attribute || false,
                     options.current_account_automatic_pay || false,
                     options.print_quantities || false,
@@ -1181,7 +1181,7 @@ var epson_e_ar = function(interface, sequence) {
     // API: Cancel ticket.
     this.cancel_fiscal_ticket  = function(callback) {
         var self = this;
-        self._cancel_fiscal_ticket(1,1,1,callback);
+        self._cancel_fiscal_ticket(callback);
     };
 };
 

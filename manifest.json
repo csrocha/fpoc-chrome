@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Fiscal Printer on the Cloud",
   "short_name": "FPoC",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "default_locale": "es",
   "description": "FPoC publica tu Impresora Fiscal en servidores de la nueve (SaaS), sin necesidad de drivers o software extra.",
   "icons": { "16": "img/icon-16px.png", "128": "img/icon-128px.png" },

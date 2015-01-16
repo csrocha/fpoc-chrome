@@ -9,14 +9,26 @@ var epson_common = function(interface, sequence_start, sequence_size) {
 	var R02 = 0x1D
 	var R03 = 0x1E
 	var R04 = 0x1F
+    var LabelEscape = [ 'STX', 'ETX', 'R01', 'ESC', 'FLD', 'R02', 'R03', 'R04' ];
 	var ToEscape = [ STX, ETX, R01, ESC, FLD, R02, R03, R04 ];
-    var SymbolMap = { '<': STX, '>': ETX, '_': FLD, };
+    var SymbolMap = { '<': STX, '>': ETX, '_': FLD };
+    var ByteMap = ToEscape.reduce(function(prev, val, i) { prev[val] = LabelEscape[i]; return prev; }, {});
 
     this.interface=interface;
     this.sequence_start=sequence_start;
     this.sequence_size=sequence_size;
     this.ackbuf = new Uint8Array([0x06]);
     this.busy = 0;
+
+    this.humanize = function(data) {
+        var bytes = new Uint8Array(data);
+        var r = '';
+        for (i = 0; i < bytes.length; i++) {
+            c = '[' + bytes[i] + ':' + (ByteMap[bytes[i]] || String.fromCharCode(parseInt(bytes[i]))) + ']';
+            r = r + c;
+        }
+        return r;
+    }
 
 	this.extend = function(destination, source) {
       var self = this;
@@ -236,6 +248,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                     if (info.data.byteLength>1) {
                         self.sendACK(function(res){
                             try {
+                                console.debug("H", self.humanize(info.data));
                                 callback(self.unpack(types, fields, info.data));
                             } catch(err) {
                                 callback({'error': err.message});
