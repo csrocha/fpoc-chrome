@@ -24,6 +24,10 @@ This column show the state of the develop.
 
 #### Listado de impresoras Homologadas en Argentina.
 
+Varios usuarios han declarado estar probando la aplicación usando el programa (emulador de impresoras)[http://www.impresoras-fiscales.com.ar/emulador.htm]  de IFDRIVERS. Estoy ayudando a que los usuarios puedan usar esta forma de probar el programa, pero como yo no tengo licencia para usarlo, el desarrollo se hace un poco lento.
+
+A continuación aparece el listado de impresoras reales donde se están haciendo los tests.
+
 |Marca|Modelo|R.G.|Fecha|Cod.|Tipo|State|
 |-----|------|----|-----|----|----|---------|
 |MORETTI|OPALE|AFIP 87|16/02/98|MMA|1||
