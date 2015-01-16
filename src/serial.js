@@ -23,10 +23,10 @@ var serial = function(device) {
     this.type = 'serial';
 
     this.onReceive = function(receiveInfo) {
-      if (receiveInfo.connectionId === connection.connectionId) {
+      if (receiveInfo && receiveInfo.connectionId === connection.connectionId) {
         var dataView = new Uint8Array(receiveInfo.data);
         buffer = concatBuf(buffer, receiveInfo.data);
-      }
+      } // Else, no data to read.
     };
 
     chrome.serial.onReceive.addListener(this.onReceive);
@@ -36,8 +36,12 @@ var serial = function(device) {
         var callback = callback;
         chrome.serial.connect(device.path, {},
                 function(connInfo) {
+                  if (connInfo) {
                     connection = connInfo;
                     callback(self);
+                  } else {
+                    callback();
+                  }
                 });
     };
 
@@ -45,7 +49,7 @@ var serial = function(device) {
         chrome.serial.disconnect(connection.connectionId, callback);
     };
 
-    this.send = function(data, callback) { 
+    this.send = function(data, callback) {
         var self = this;
         var callback = callback;
         buffer = buffer.slice(bufferRef);
@@ -59,14 +63,14 @@ var serial = function(device) {
                     }
                     callback(res);
                 });
- 
+
     };
 
     this.receive = function(callback, count) {
-        var count = typeof count != 'undefined' ? count : 10; 
+        var count = typeof count != 'undefined' ? count : 100;
         var __callback = callback;
         if (count < 0) {
-            callback();
+            callback({'resultCode': -1, 'data': null});
             return;
         }
 
@@ -83,7 +87,7 @@ var serial = function(device) {
                     var r = { 'resultCode': 0, 'data':  buffer.slice(stx_idx, etx_idx + 1 + 4) };
                     bufferRef=etx_idx+1+4;
                     callback(r);
-                } else { 
+                } else {
                     setTimeout(function() { self.receive(callback, count-1); }, 100);
                 }
             }

@@ -15,7 +15,7 @@ var usb = function(device) {
             self.handle = handle;
             chrome.usb.claimInterface(self.handle, self.interface, function() {
                 if (chrome.runtime.lastError) {
-                    return 0;   
+                    return callback();
                 } else {
                     return callback(self);
                 }
@@ -30,7 +30,7 @@ var usb = function(device) {
             chrome.usb.bulkTransfer(self.handle,
                 {   'direction': 'out',
                     'endpoint': 0x01,
-                    'data': data, 
+                    'data': data,
                 }, function(res) {
                     callback(res);
                 });
@@ -48,9 +48,9 @@ var usb = function(device) {
             chrome.usb.bulkTransfer(self.handle,
                 {   'direction': 'in',
                     'endpoint': 0x82,
-                    'length': 2048, 
+                    'length': 2048,
                 }, function(res) {
-                    if (res.data.byteLength == 0) { 
+                    if (res.data.byteLength == 0) {
                         setTimeout(function() {
                             self.receive(callback);
                         }, 100);

@@ -9,7 +9,6 @@ var epson_e_ar = function(interface, sequence) {
     this.ackbuf = new Uint8Array([0x06]);
     this.common = this.ar.common;
     this.protocol = 'epson_e_ar';
-    this.busy = 0;
 
     // Values | Enums
     this.speed = {
@@ -17,7 +16,7 @@ var epson_e_ar = function(interface, sequence) {
         's19200bps'  : 1,
         's9600bps'   : 2,
         's57600bps'  : 3,
-        's115200bps' : 4 
+        's115200bps' : 4
     };
 
     this.station = {
@@ -28,7 +27,8 @@ var epson_e_ar = function(interface, sequence) {
     this.command_callback = function(callback) {
         var self = this;
         return function(response) {
-            if (response && response.printerStatus != null) { 
+            response = response || {};
+            if (response && response.printerStatus != null) {
                 self.common.extend(response, self.ar.printerState(response.printerStatus));
                 response.strPrinterStatus = self.ar.printerStateString(response.printerStatus);
             };
@@ -37,7 +37,7 @@ var epson_e_ar = function(interface, sequence) {
                 response.strFiscalStatus = self.ar.fiscalStateString(response.fiscalStatus);
             };
             if (response && response.result) {
-                response.strResult = result_messages[response.result];
+                response.strResult = self.ar.result_messages[response.result];
             };
             callback(response);
         }
@@ -70,7 +70,7 @@ var epson_e_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result'],
                 self.command_callback(callback));
     };
-    
+
     // 6.1.3 Obtener Error de Proceso Interno (00 04)
     this.get_internal_error = function(callback) {
         self.common.command(
@@ -151,7 +151,7 @@ var epson_e_ar = function(interface, sequence) {
                  'vatAmount', 'returnAmount'],
                 self.command_callback(callback));
     };
-    
+
     // 6.3.1 Configurar Fecha y Hora (05 01)
     this._set_datetime = function(date, time, callback) {
         self.common.command(
@@ -235,7 +235,7 @@ var epson_e_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result'],
                 self.command_callback(callback));
     };
-    
+
     // 6.3.9 Obtener Líneas de Información del Establecimiento (05 0F)
     this.get_pos_info = function(line, callback) {
         self.common.command(
@@ -318,7 +318,7 @@ var epson_e_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result'],
                 self.command_callback(callback));
     };
-    
+
     // 6.3.17 Obtener estado de impresión de arqueo de pagos (05 53)
     this.get_payment_report = function(active, callback) {
         self.common.command(
@@ -339,7 +339,7 @@ var epson_e_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result'],
                 self.command_callback(callback));
     }
-    
+
     // 6.4.2 Cortar Papel (07 02)
     this._cut_paper = function(callback) {
         self.common.command(
@@ -361,7 +361,7 @@ var epson_e_ar = function(interface, sequence) {
                  'closeNumber'],
                 self.command_callback(callback));
     }
-    
+
     // 6.5.2 Reporte X (08 02)
     this._x_report = function(showheadfoot, showinfo, print, callback) {
         var ext = (showinfo && 0x0800) + (showheadfoot && 0x0400) + (print && 0x0001);
@@ -443,13 +443,13 @@ var epson_e_ar = function(interface, sequence) {
     //
     // partner_document_type =  D: DNI,
     //                          L: CUIL,
-    //                          T: CUIT, 
-    //                          C: Cedula de Identidad, 
-    //                          P: Pasaporte, 
-    //                          V: Libreta Civica, 
+    //                          T: CUIT,
+    //                          C: Cedula de Identidad,
+    //                          P: Pasaporte,
+    //                          V: Libreta Civica,
     //                          E: Libreta Enrolamiento.
-    // partner_document_number = I: Inscripto, 
-    //                           N: No responsable, 
+    // partner_document_number = I: Inscripto,
+    //                           N: No responsable,
     //                           M: Monotributista,
     //                           E: Exento,
     //                           U: No categorizado,
@@ -491,9 +491,9 @@ var epson_e_ar = function(interface, sequence) {
                         partner_address,
                         partner_address_2,
                         partner_address_3,
-                        partner_document_type,   
+                        partner_document_type,
                         partner_document_number,
-                        partner_responsability,  
+                        partner_responsability,
                         related_document,
                         related_document_2,
                         turist_check),
@@ -640,7 +640,7 @@ var epson_e_ar = function(interface, sequence) {
     //        charge: recargo
     // description = Descripción
     // amount = Monto de descuento/recargo
-    // 
+    //
     // OUTPUT
     //
     // subtotal = Subtotal parcial del tique-factura o nota de débito.
@@ -660,7 +660,7 @@ var epson_e_ar = function(interface, sequence) {
                  'subtotal'],
                 self.command_callback(callback));
     }
-    
+
     // 6.7.5 Pagos (0B 05)
     //
     // Aplica un pago al tique-factura o nota de débito fiscal en proceso de emisión.
@@ -896,7 +896,7 @@ var epson_e_ar = function(interface, sequence) {
             callback();
         };
     };
-   
+
     // API: OPERATION (?)
     this.read_attributes = function(callback) {
         var self = this;
@@ -908,9 +908,13 @@ var epson_e_ar = function(interface, sequence) {
         var do_response = function(response) {
             var date = response.date;
             var time = response.time;
-            fields['clock'] = "20"+date.slice(4,6)+"-"+date.slice(2,4)+"-"+date.slice(0,2)+" "+time.slice(0,2)+":"+time.slice(2,4)+":"+time.slice(4,6);
-            fields['printerStatus'] = 'Impresora: ' + response.strPrinterStatus + '\nFiscal: ' + response.strFiscalStatus;
-            callback({fields: fields, attributes: attributes, readonly: readonly});
+            if (date && time) {
+                fields['clock'] = "20"+date.slice(4,6)+"-"+date.slice(2,4)+"-"+date.slice(0,2)+" "+time.slice(0,2)+":"+time.slice(2,4)+":"+time.slice(4,6);
+                fields['printerStatus'] = 'Impresora: ' + response.strPrinterStatus + '\nFiscal: ' + response.strFiscalStatus;
+                callback({fields: fields, attributes: attributes, readonly: readonly});
+            } else {
+                callback({'error': 'date-time error'})
+            }
         };
 
         var read_fields = function(ks) {
@@ -937,20 +941,24 @@ var epson_e_ar = function(interface, sequence) {
     // Status
     this.get_status = function(callback) {
         var self = this;
-        if (self.busy) {
+        if (self.common.busy) {
             callback({'status': 'busy'});
         } else {
             self._get_status(function(res) {
                 self._status = res;
-                callback(res);
+                if (res && res.result != null) {
+                    callback(res);
+                } else {
+                    callback({'error': 'disconnected'});
+                }
             });
         }
     };
-    
+
     // Info
     this.get_info = function(callback) {
         var self = this;
-        if (self.busy) {
+        if (self.common.busy) {
             callback({'status': 'busy'});
         } else {
             self._get_status(function(res) {
@@ -959,11 +967,13 @@ var epson_e_ar = function(interface, sequence) {
                         self._status = res;
                         callback(res);
                     });
-                };
+                } else {
+                    callback({'error': 'disconnected'});
+                }
             });
         };
     };
- 
+
     // Tests
 
     // API: Execute short test
@@ -1023,7 +1033,7 @@ var epson_e_ar = function(interface, sequence) {
         var self = this;
         self._advance_paper(0,1,callback);
     }
-    
+
     // API: Cut paper
     this.cut_paper = function(callback) {
         var self = this;
@@ -1031,7 +1041,7 @@ var epson_e_ar = function(interface, sequence) {
     }
 
     // API: Cancel printer
-    
+
     // Document information
 
     // Fiscal Journal
@@ -1041,7 +1051,7 @@ var epson_e_ar = function(interface, sequence) {
         var self = this;
         self._get_counters(callback);
     }
-    
+
     // API: Open Fiscal Journal
     this.open_fiscal_journal = function(callback) {
         var self = this;
@@ -1067,6 +1077,12 @@ var epson_e_ar = function(interface, sequence) {
     this.make_fiscal_ticket  = function(options, ticket, callback) {
         var self = this;
 
+        var cancel_fiscal_ticket = function(ret) {
+            ret = ret || {};
+            ret.error = 'ticket canceled'
+            callback(ret);
+        }
+
         self._open_fiscal_ticket(
 			    options.triplicated || false,
 			    options.store_description || false,
@@ -1090,7 +1106,7 @@ var epson_e_ar = function(interface, sequence) {
             console.error(res.strResult);
             callback({'error': 'Cant open ticket:' + res.strResult});
         } else
-        async.eachSeries(ticket.lines,
+        async.eachSeries(ticket.lines || [],
             function(line, _callback_){
             self._item_fiscal_ticket(
                     line.item_action || "sale_item",
@@ -1106,21 +1122,21 @@ var epson_e_ar = function(interface, sequence) {
                     line.description_4 || "",
                     line.item_description,
                     line.quantity || 1,
-                    line.unit_price,
+                    -line.unit_price,
                     line.vat_rate || 0,
                     line.fixed_taxes || 0,
                     line.taxes_rate || 0,
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_fiscal_ticket(callback);
+                            self._cancel_fiscal_ticket(cancel_fiscal_ticket);
                         } else {
                             _callback_();
                         }
                     }
                 );
             }, function() {
-        async.eachSeries(ticket.payments,
+        async.eachSeries(ticket.payments || [],
             function(pay, _callback_){
             self._pay_fiscal_ticket(
                     pay.type,
@@ -1130,7 +1146,7 @@ var epson_e_ar = function(interface, sequence) {
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_fiscal_ticket(callback);
+                            self._cancel_fiscal_ticket(callback_fiscal_ticket);
                         } else {
                             _callback_();
                         }
@@ -1152,7 +1168,7 @@ var epson_e_ar = function(interface, sequence) {
             function(res) {
             if (res.result != 0) {
                 console.error(res.strResult);
-                self._cancel_fiscal_ticket(callback);
+                self._cancel_fiscal_ticket(cancel_fiscal_ticket);
             } else {
                 callback(res);
             }
@@ -1173,11 +1189,27 @@ function epson_e_ar_open(device, port, callback) {
     console.debug("EPSON: Rev E Constructor");
     if (port == 'usb') {
         var inter = new usb(device);
-        inter.open(function(inter){ callback(new epson_e_ar(inter)); });
-    } else 
+        inter.open(function(inter){
+          if (inter) { callback(new epson_e_ar(inter)); }
+          else callback();
+        });
+    } else
     if (port == 'serial') {
         var inter = new serial(device);
-        inter.open(function(inter){ callback(new epson_e_ar(inter)); });
+        inter.open(function(inter){
+          if (inter) {
+              // Check if its the right protocol for this device
+              var dev = new epson_e_ar(inter);
+              dev._get_status(function(res) {
+                  if (res.result != null) {
+                      callback(dev);
+                  } else {
+                      callback();
+                  }
+              })
+          }
+          else callback();
+        });
     };
 };
 

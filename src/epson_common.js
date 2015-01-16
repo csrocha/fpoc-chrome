@@ -16,6 +16,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
     this.sequence_start=sequence_start;
     this.sequence_size=sequence_size;
     this.ackbuf = new Uint8Array([0x06]);
+    this.busy = 0;
 
 	this.extend = function(destination, source) {
       var self = this;
@@ -209,7 +210,8 @@ var epson_common = function(interface, sequence_start, sequence_size) {
     };
 
     this.waitResponse = function(types, fields, callback) {
-        self = this;
+        var types = types;
+        var self = this;
         var local_callback = function(info) {
                 if (info && info.resultCode == 0) {
                     var dv = new DataView(info.data);
@@ -233,11 +235,15 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                     } else
                     if (info.data.byteLength>1) {
                         self.sendACK(function(res){
-                            callback(self.unpack(types, fields, info.data));
+                            try {
+                                callback(self.unpack(types, fields, info.data));
+                            } catch(err) {
+                                callback({'error': err.message});
+                            }
                         });
                     };
                 } else {
-                    callback();
+                    callback({});
                 };
             };
         self.interface.receive(local_callback);
@@ -258,6 +264,9 @@ var epson_common = function(interface, sequence_start, sequence_size) {
 
         var local_callback = function(response) {
             self.busy--;
+            if (response) {
+                response.command = name;
+            }
             callback(response);
         };
         self.interface.alive(

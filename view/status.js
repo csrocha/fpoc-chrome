@@ -89,7 +89,7 @@ chrome.storage.local.get(['server', 'session_id'], function(value) {
 if (!String.prototype.format) {
   String.prototype.format = function() {
     var args = arguments;
-    return this.replace(/{(\d+)}/g, function(match, number) { 
+    return this.replace(/{(\d+)}/g, function(match, number) {
       return typeof args[number] != 'undefined'
         ? args[number]
         : match
@@ -133,7 +133,7 @@ function set_state(_state) {
                     session.logout(function() {
                         load_databases(server_input.value, finish);
                     });
-                else 
+                else
                         load_databases(server_input.value, finish);
             } else {
                 set_state('url');
@@ -159,7 +159,7 @@ function set_state(_state) {
             } else {
                 if (session.session_id) {
                     finish()
-                } else { 
+                } else {
                     set_state('login');
                     finish();
                 }
@@ -299,6 +299,7 @@ function update() {
 };
 
 window.update = update;
+window.show_alert = do_alert;
 
 disconnect_button.onclick = function(event) {
     set_state('login');

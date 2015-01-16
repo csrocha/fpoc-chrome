@@ -84,7 +84,7 @@ var query_local_printers = function(callback, onchange) {
         async.eachSeries(takeKeys(local_printers),
                 function(pid, __callback__) {
                     local_printers[pid].get_status(function(result) {
-                        if (typeof result == 'undefined') {
+                        if (typeof result == 'undefined' || ('error' in result  && result.error == 'disconnected')) {
                             local_printers[pid].close();
                             delete local_printers[pid];
                             change=true;
@@ -108,6 +108,7 @@ var query_local_printers = function(callback, onchange) {
         case 'epson_d_ar':
             epson_d_ar_open(device, port,
                 function(printer) {
+                  if (printer) {
                     printer.get_info(function(result){
                         if (result) {
                             var key = printer.protocol + '://' +
@@ -127,11 +128,16 @@ var query_local_printers = function(callback, onchange) {
                         };
                         callback();
                     });
+                  } else {
+                    console.debug("[FP] No printer found.");
+                    callback();
+                  };
                 });
             break;
          case 'epson_e_ar':
             epson_e_ar_open(device, port,
                 function(printer) {
+                  if (printer) {
                     printer.get_info(function(result){
                         if (result) {
                             var key = printer.protocol + '://' +
@@ -151,59 +157,15 @@ var query_local_printers = function(callback, onchange) {
                         };
                         callback();
                     });
+                  } else {
+                    console.debug("[FP] No printer found.");
+                    callback();
+                  }
                 });
         break;
         };
     };
 
-    var onUsbDeviceFound_old = function(protocol, vendorId, productId, devices, callback_) {
-        var protocol = protocol;
-        var devices = devices;
-        var callback_ = callback_;
-        // Remove devices if not connected.
-        async.each(takeKeys(local_devices), function(item, __callback_) {
-            var remove = true;
-            for(i in devices) { remove &= (devices[i]['device'] != item); };
-            if (remove) {
-                console.debug("[FP] Remove device");
-                change=true;
-                chrome.usb.closeDevice(local_devices[item], function() {
-                    async.each(takeKeys(local_printers), function(key, ___callback_) {
-                        if (local_devices[item] && local_printers[key] &&
-                            local_printers[key].device.handle == local_devices[item].handle) {
-                            delete local_devices[item];
-                            delete local_printers[key];
-                        }
-                        ___callback_();
-                    }, __callback_ );
-                });
-            } else {
-                __callback_();
-            }
-        }, function() {
-            // Create new devices.
-            async.each(devices, function(item, __callback_) {
-                if (item['device'] in local_devices) {
-                    console.debug("[FP] Device yet exists.");
-                    __callback_();
-                } else {
-                    console.debug("[FP] New device.");
-                    change=true;
-                    chrome.usb.openDevice(item, function(handle){
-                        if (handle) {
-                            local_devices[item['device']] = handle;
-                            //declarePrinter('usb', protocol, handle, function() {
-                            //    __callback_();
-                            //});
-                        } else {
-                            console.warn("[FP] Device is not accessible.");
-                            __callback_();
-                        };
-                    });
-                };
-            }, callback_);
-        });
-    };
 
     var onUsbDeviceFound = function(protocol, vendorId, productId, devices, callback) {
         async.each(devices, function(device, __callback__) {

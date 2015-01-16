@@ -17,7 +17,7 @@ var epson_d_ar = function(interface, sequence) {
         's19200bps'  : 1,
         's9600bps'   : 2,
         's57600bps'  : 3,
-        's115200bps' : 4 
+        's115200bps' : 4
     };
 
     this.station = {
@@ -35,7 +35,7 @@ var epson_d_ar = function(interface, sequence) {
     this.command_callback = function(callback) {
         var self = this;
         return function(response) {
-            if (response && response.printerStatus != null) { 
+            if (response && response.printerStatus != null) {
                 self.common.extend(response, self.ar.printerState(response.printerStatus));
                 response.strPrinterStatus = self.ar.printerStateString(response.printerStatus);
             };
@@ -70,7 +70,7 @@ var epson_d_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
     };
-    
+
     // 6.1.3 Obtener Error de Proceso Interno (00 04)
     this.get_internal_error = function(callback) {
         self.common.command(
@@ -151,7 +151,7 @@ var epson_d_ar = function(interface, sequence) {
                  'vatAmount', 'returnAmount'
                 ], callback);
     };
-    
+
     // 6.3.1 Configurar Fecha y Hora (05 01)
     this._set_datetime = function(date, time, callback) {
         self.common.command(
@@ -235,7 +235,7 @@ var epson_d_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
     };
-    
+
     // 6.3.9 Obtener Líneas de Información del Establecimiento (05 0F)
     this.get_pos_info = function(line, callback) {
         self.common.command(
@@ -318,7 +318,7 @@ var epson_d_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
     };
-    
+
     // 6.3.17 Obtener estado de impresión de arqueo de pagos (05 53)
     this.get_payment_report = function(active, callback) {
         self.common.command(
@@ -339,7 +339,7 @@ var epson_d_ar = function(interface, sequence) {
                 ['printerStatus', 'fiscalStatus', 'result'],
                 callback);
     }
-    
+
     // 6.4.2 Cortar Papel (07 02)
     this._cut_paper = function(callback) {
         self.common.command(
@@ -361,7 +361,7 @@ var epson_d_ar = function(interface, sequence) {
                  'closeNumber'],
                 callback);
     }
-    
+
     // 6.5.2 Reporte X (08 02)
     this._x_report = function(showheadfoot, showinfo, print, callback) {
         var ext = (showinfo && 0x0800) + (showheadfoot && 0x0400) + (print && 0x0001);
@@ -443,13 +443,13 @@ var epson_d_ar = function(interface, sequence) {
     //
     // partner_document_type =  D: DNI,
     //                          L: CUIL,
-    //                          T: CUIT, 
-    //                          C: Cedula de Identidad, 
-    //                          P: Pasaporte, 
-    //                          V: Libreta Civica, 
+    //                          T: CUIT,
+    //                          C: Cedula de Identidad,
+    //                          P: Pasaporte,
+    //                          V: Libreta Civica,
     //                          E: Libreta Enrolamiento.
-    // partner_document_number = I: Inscripto, 
-    //                           N: No responsable, 
+    // partner_document_number = I: Inscripto,
+    //                           N: No responsable,
     //                           M: Monotributista,
     //                           E: Exento,
     //                           U: No categorizado,
@@ -491,9 +491,9 @@ var epson_d_ar = function(interface, sequence) {
                         partner_address,
                         partner_address_2,
                         partner_address_3,
-                        partner_document_type,   
+                        partner_document_type,
                         partner_document_number,
-                        partner_responsability,  
+                        partner_responsability,
                         related_document,
                         related_document_2,
                         turist_check),
@@ -640,7 +640,7 @@ var epson_d_ar = function(interface, sequence) {
     //        charge: recargo
     // description = Descripción
     // amount = Monto de descuento/recargo
-    // 
+    //
     // OUTPUT
     //
     // subtotal = Subtotal parcial del tique-factura o nota de débito.
@@ -660,7 +660,7 @@ var epson_d_ar = function(interface, sequence) {
                  'subtotal'],
                 callback);
     }
-    
+
     // 6.7.5 Pagos (0B 05)
     //
     // Aplica un pago al tique-factura o nota de débito fiscal en proceso de emisión.
@@ -896,7 +896,7 @@ var epson_d_ar = function(interface, sequence) {
             callback();
         };
     };
-   
+
     // API: OPERATION (?)
     this.read_attributes = function(callback) {
         var self = this;
@@ -946,7 +946,7 @@ var epson_d_ar = function(interface, sequence) {
             });
         }
     };
-    
+
     // Info
     this.get_info = function(callback) {
         var self = this;
@@ -961,7 +961,7 @@ var epson_d_ar = function(interface, sequence) {
             });
         }
     };
- 
+
     // Tests
 
     // API: Execute short test
@@ -1021,7 +1021,7 @@ var epson_d_ar = function(interface, sequence) {
         var self = this;
         self._advance_paper(0,1,callback);
     }
-    
+
     // API: Cut paper
     this.cut_paper = function(callback) {
         var self = this;
@@ -1029,7 +1029,7 @@ var epson_d_ar = function(interface, sequence) {
     }
 
     // API: Cancel printer
-    
+
     // Document information
 
     // Fiscal Journal
@@ -1039,7 +1039,7 @@ var epson_d_ar = function(interface, sequence) {
         var self = this;
         self._get_counters(callback);
     }
-    
+
     // API: Open Fiscal Journal
     this.open_fiscal_journal = function(callback) {
         var self = this;
@@ -1171,11 +1171,27 @@ function epson_d_ar_open(device, port, callback) {
     console.debug("EPSON: Rev D Constructor");
     if (port == 'usb') {
         var inter = new usb(device);
-        inter.open(function(inter){ callback(new epson_d_ar(inter)); });
-    } else 
+        inter.open(function(inter){
+          if (inter) { callback(new epson_d_ar(inter)); }
+          else callback();
+        });
+    } else
     if (port == 'serial') {
         var inter = new serial(device);
-        inter.open(function(inter){ callback(new epson_d_ar(inter)); });
+        inter.open(function(inter){
+          if (inter) {
+              // Check if its the right protocol for this device
+              var dev = new epson_d_ar(inter);
+              dev._get_status(function(res) {
+                  if (res.result != null) {
+                      callback(dev);
+                  } else {
+                      callback();
+                  }
+              })
+          }
+          else callback();
+        });
     };
 };
 

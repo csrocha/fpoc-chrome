@@ -1,9 +1,9 @@
 // Protocolo EPSON, common definitions
 
 var epson_ar_common = function(interface, sequence_start, sequence_size){
-    this.common = new epson_common(interface, sequence_start, sequence_size);
+  this.common = new epson_common(interface, sequence_start, sequence_size);
 
-	var result_messages = {
+	this.result_messages = {
 		0x0000:"Resultado exitoso",
 		0x0001:"Error interno",
 		0x0002:"Error de inicialización del equipo",
@@ -130,19 +130,19 @@ var epson_ar_common = function(interface, sequence_start, sequence_size){
 		0xFFFF:"Error desconocido",
 	};
 
-    this.fiscalState = function(data) {
-        var self = this;
-        return self.common.unbits([parseInt('1100000000000000',2), 
-               parseInt('0001000000000000',2),
-               parseInt('0000110000000000',2),
-               parseInt('0000000010000000',2),
-               parseInt('0000000001110000',2),
-               parseInt('0000000000001111',2)],
-              [14,12,10,7,4,0],
-              ['functionMode', 'inTechMode', 'memStatus',
-               'inFiscalJournal', 'subStatus', 'documentInProgress'],
+  this.fiscalState = function(data) {
+    var self = this;
+    return self.common.unbits([parseInt('1100000000000000',2),
+           parseInt('0001000000000000',2),
+           parseInt('0000110000000000',2),
+           parseInt('0000000010000000',2),
+           parseInt('0000000001110000',2),
+           parseInt('0000000000001111',2)],
+          [14,12,10,7,4,0],
+          ['functionMode', 'inTechMode', 'memStatus',
+           'inFiscalJournal', 'subStatus', 'documentInProgress'],
               data);
-    };
+  };
 
 	var strFunctionMode = [ 'Modo bloqueado', 'Modo manufactura', 'Modo entrenamiento', 'Modo fiscal' ];
 	var strInTechMode = [ 'Modo tecnico inactivo', 'Modo activo' ];
@@ -156,33 +156,33 @@ var epson_ar_common = function(interface, sequence_start, sequence_size){
 			      'Documento no fiscal en rollo', 'Documento no fiscal en slip' ];
 
 	this.fiscalStateString = function(data) {
-        var self = this;
-	    var s = self.fiscalState(data);
-	    return strFunctionMode[s.functionMode] + ',' +
-		       strInTechMode[s.inTechMode] + ',' +
-		       strMemStatus[s.memStatus] + ',' +
-		       strInFiscalJournal[s.inFiscalJournal] + ',' +
-		       strSubStatus[s.subStatus] + ',' +
-		       strDocumentInProgress[s.documentInProgress]
+    var self = this;
+    var s = self.fiscalState(data);
+    return strFunctionMode[s.functionMode] + ',' +
+	       strInTechMode[s.inTechMode] + ',' +
+	       strMemStatus[s.memStatus] + ',' +
+	       strInFiscalJournal[s.inFiscalJournal] + ',' +
+	       strSubStatus[s.subStatus] + ',' +
+	       strDocumentInProgress[s.documentInProgress]
 	};
 
 	this.printerState = function(data) {
-        var self = this;
-	    return self.common.unbits([parseInt('1000000000000000',2), 
-			   parseInt('0100000000000000',2), 
-			   parseInt('0010000000000000',2), 
-			   parseInt('0001000000000000',2),
-			   parseInt('0000011000000000',2),
-			   parseInt('0000000110000000',2),
-			   parseInt('0000000001000000',2),
-			   parseInt('0000000000100000',2),
-			   parseInt('0000000000010000',2),
-			   parseInt('0000000000001100',2),
-			   parseInt('0000000000000011',2)],
-			  [15,14,13,12,9,7,6,5,4,2,0],
-			  ['isOffline', 'inError', 'isPrinterOpen', 'isBoxOpen', 'printerStation',
-			   'slipState', 'slipInitHasPaper', 'slipEndHasPaper', 'slipHasPaper',
-			   'journalState', 'receiptState'],
+    var self = this;
+    return self.common.unbits([parseInt('1000000000000000',2),
+		   parseInt('0100000000000000',2),
+		   parseInt('0010000000000000',2),
+		   parseInt('0001000000000000',2),
+		   parseInt('0000011000000000',2),
+		   parseInt('0000000110000000',2),
+		   parseInt('0000000001000000',2),
+		   parseInt('0000000000100000',2),
+		   parseInt('0000000000010000',2),
+		   parseInt('0000000000001100',2),
+		   parseInt('0000000000000011',2)],
+		  [15,14,13,12,9,7,6,5,4,2,0],
+		  ['isOffline', 'inError', 'isPrinterOpen', 'isBoxOpen', 'printerStation',
+		   'slipState', 'slipInitHasPaper', 'slipEndHasPaper', 'slipHasPaper',
+		   'journalState', 'receiptState'],
 			  data);
 	};
 
@@ -200,18 +200,18 @@ var epson_ar_common = function(interface, sequence_start, sequence_size){
 
 	this.printerStateString = function(data) {
         var self = this;
-	    var s = self.printerState(data);
-	    return  strIsOffline[s.isOffline] + ',' +
-                strInError[s.inError] + ',' +
-                strIsPrinterOpen[s.isPrinterOpen] + ',' +
-                strIsBoxOpen[s.isBoxOpen] + ',' +
-                strPrinterStation[s.printerStation] + ',' +
-                strSlipState[s.slipState] + ',' +
-                strSlipInitHasPaper[s.slipInitHasPaper] + ',' +
-                strSlipEndHasPaper[s.slipEndHasPaper] + ',' +
-                strSlipHasPaper[s.slipHasPaper] + ',' +
-                strJournalState[s.journalState] + ',' +
-                strReceiptState[s.receiptState]
+        var s = self.printerState(data);
+        return  strIsOffline[s.isOffline] + ',' +
+                  strInError[s.inError] + ',' +
+                  strIsPrinterOpen[s.isPrinterOpen] + ',' +
+                  strIsBoxOpen[s.isBoxOpen] + ',' +
+                  strPrinterStation[s.printerStation] + ',' +
+                  strSlipState[s.slipState] + ',' +
+                  strSlipInitHasPaper[s.slipInitHasPaper] + ',' +
+                  strSlipEndHasPaper[s.slipEndHasPaper] + ',' +
+                  strSlipHasPaper[s.slipHasPaper] + ',' +
+                  strJournalState[s.journalState] + ',' +
+                  strReceiptState[s.receiptState]
 	};
 };
 

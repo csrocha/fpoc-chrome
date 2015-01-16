@@ -13,6 +13,7 @@
 			  "test/test_001.js",
 			  "test/test_002.js",
 			  "test/test_003.js",
+			  "src/cevents.js",
 			  "src/async.js",
 			  "src/serial.js",
 			  "src/usb.js",

@@ -15,54 +15,62 @@ uniqueId = function(prefix) {
 // Class to create a session associated to a server.
 //
 oerpSession = function(server, session_id) {
+    EventTarget.call(this);
 
     this.server = server;
     this.session_id = session_id;
     this.id = uniqueId('p');
-    this.receptor = [];
+    this.spools = {};
 
-    this.onlogin = null;
     this.onlogout = null;
     this.onmessage = null;
     this.onlogerror = null;
-    this.onerror = null;
     this.onexpired = null;
     this.onchange = null;
 
     this.printers = null;
     this.lastOperationStatus = 'No info';
 
+
     //
     // Init general server event listener.
     //
-    this.set_server_events = function(params, event_function_map, data, return_callback, callback) {
+    this.set_server_events = function(params, event_function_map, data, return_callback, callback, retry) {
         var self = this;
 
         console.log("Create spool ", params);
 
         var receptor = new EventSource(this.server + "/fp/spool?" + params);
+        if (receptor.url in self.spools) {
+            console.log("Repeated spool. Ignore it.");
+            return;
+        }
+        self.spools[receptor.url] = receptor;
+
         receptor.onopen = function(ev) {
-            console.log("SERVER EVENT OPEN!!!!", ev);
+            self.dispatchEvent({type: 'spool_open', 'event': ev});
         };
         receptor.onerror = function(ev) {
-            console.log("SERVER EVENT ERROR!!!!", ev);
-            return_callback("error", ev);
+            var url = ev.srcElement.url;
+            self.spools[url].close();
+            delete self.spools[url];
+            self.dispatchEvent({type: 'spool_error', 'event': ev});
         };
         receptor.onmessage = function(ev) {
-            console.log("SERVER EVENT MESSAGE!!!!", ev);
+            self.dispatchEvent({type: 'spool_message', 'event': ev});
         };
+
+        receptor.addEventListener('close', function() {
+            debugger;
+        } , false);
 
         async.each(takeKeys(event_function_map), function(event_key, __callback) {
                 var event_callback = function(ev) {
                     var event_data = JSON.parse(ev.data);
                     var local_data = data;
-                    if (self.onmessage) {
-                        self.onmessage("in", ev.type);
-                    }
                     event_function_map[ev.type](self, ev.lastEventId, event_data, local_data, return_callback);
                 };
                 receptor.addEventListener(event_key, event_callback, false);
-                self.receptor.push(receptor);
                 __callback();
             },
             callback);
@@ -85,6 +93,7 @@ oerpSession = function(server, session_id) {
             console.log(mess);
         };
         var _callback = function(ev) {
+            self.dispatchEvent({type: 'connection', 'printer': printer});
             callback(ev);
         };
 
@@ -96,7 +105,7 @@ oerpSession = function(server, session_id) {
     };
 
     //
-    // Init control server event listener.
+    // Init control event-sent server listener.
     //
     this.init_server_events = function(event_function_map, callback) {
         var self = this;
@@ -113,6 +122,18 @@ oerpSession = function(server, session_id) {
                 return_callback,
                 callback);
     };
+
+    //
+    // Clean event-set server
+    //
+    this.clean_server_events = function() {
+        //var self = this;
+        //for (i = 0; i < self.receptor.length; i++) {
+        //  self.receptor[i].close();
+        //};
+        //delete self.receptor;
+        //self.receptor = [];
+    }
 
     //
     // Execute expiration event
@@ -137,21 +158,21 @@ oerpSession = function(server, session_id) {
         args = args + "&r="+encodeURIComponent(JSON.stringify(request || {}));
 
         xhr.ontimeout = function(event) {
-            self.onerror(event);
+            self.dispatchEvent({type: 'error', 'event': event});
             callback("timeout", null);
         };
         xhr.onerror = function(event)   {
-            self.onerror(event);
+            self.dispatchEvent({type: 'error', 'event': event});
             callback("error", null);
         };
-        xhr.onload = function(event) { 
+        xhr.onload = function(event) {
             r = event.currentTarget.response;
             try {
-                response = JSON.parse(r.substring(2,r.length-2));    
-            }
-            catch(err) {
-                self.onerror(event);
+                response = JSON.parse(r.substring(2,r.length-2));
+            } catch(err) {
+                self.dispatchEvent({type: 'error', 'event': event});
                 callback("error", null);
+                return;
             }
             if (response.error) {
                 console.error(response.error);
@@ -194,18 +215,14 @@ oerpSession = function(server, session_id) {
                 self.user_context = result.user_context;
                 self.uid = result.uid;
                 self.session_id = result.session_id;
-                if (self.onlogin && self.uid) {
-                    mess = 'logged';
-                    self.onlogin(self);
-                };
-                if (self.onexpired && !self.uid) {
-                    mess = 'expired';
-                    self.onexpired(self);
-                };
+                if (self.uid) {
+                    self.dispatchEvent('login');
+                } else {
+                    self.dispatchEvent('expired');
+                }
             } else {
-                if (self.onlogerror && !self.uid) {
-                    mess = 'logerror';
-                    self.onlogerror(self);
+                if (!self.uid) {
+                    self.dispatchEvent('login_error');
                 };
             };
             if (callback) {
@@ -216,6 +233,7 @@ oerpSession = function(server, session_id) {
 
     //
     // Authenticate user in a db with a password.
+    // NADIE LO USA!
     //
     this.authenticate = function(db, login, password, callback) {
         var self = this;
@@ -227,15 +245,15 @@ oerpSession = function(server, session_id) {
                 self.uid = result.uid;
                 self.session_id = result.session_id;
                 self.username = login;
-                if (self.onlogin && old_uid != self.uid && self.uid != null) {
-                    self.onlogin(self);
+                if (old_uid != self.uid && self.uid != null) {
+                    self.dispatchEvent('login');
                 };
-                if (self.onlogerror && self.uid == null) {
-                    self.onlogerror(self);
+                if (self.uid == null) {
+                    self.dispatchEvent('login_error');
                 };
             }
             if (callback) {
-                callback(mess, result.uid && result.uid != null);
+                callback(mess, result && result.uid && result.uid != null);
             };
         };
         this.rpc("/web/session/authenticate", params, _callback);
@@ -251,18 +269,19 @@ oerpSession = function(server, session_id) {
             self.username = null;
             self.uid = null;
             self.session = null;
-            if (self.onlogout) { self.onlogout(self); };
+            self.dispatchEvent('logout');
             if (callback) { callback(mess); };
         }
         this.rpc("/web/session/destroy", params, _callback);
     }
 
     //
-    // Return none.
+    // Return value to the server.
     //
     this.send = function(value, callback) {
         var self = this;
         var _callback = function(mess, result) {
+            self.dispatchEvent({type: 'send', 'message': mess, 'result': result});
             if (callback) {
                 callback(mess, result);
             };
@@ -271,24 +290,12 @@ oerpSession = function(server, session_id) {
     };
 
     //
-    // Publish printers.
-    //
-    this.send_info = function(data, callback) {
-        var self = this;
-        var _callback = function(mess, result) {
-            if (callback) {
-                callback(mess, result);
-            };
-        };
-        this.rpc("/fp/push", data, _callback);
-    };
-
-    //
     // Check if server is online
     //
     this.check = function(callback) {
         var self = this;
         var _callback = function(mess, result) {
+            self.dispatchEvent({type: 'check', 'message': mess, 'result': result});
             if (callback) {
                 callback(mess, result);
             };
@@ -297,10 +304,11 @@ oerpSession = function(server, session_id) {
 
     };
 
-    // 
+    //
     // Init the session in the server if exists.
     //
     this.init = function(callback) {
+        var self = this;
         var _callback = callback || function(mess, obj) {
             if (mess != "logged") {
                 console.warn("Session is not open. Reason: ", mess);
@@ -312,7 +320,7 @@ oerpSession = function(server, session_id) {
         if (this.session_id) {
             this.get_session_info(_callback);
         } else {
-            this.onerror();
+            self.dispatchEvent('error');
             _callback("notlogin", this);
         };
     };
@@ -327,9 +335,9 @@ oerpSession = function(server, session_id) {
     }
 
     //
-    // Clean devices.
+    // Clean devices and sessions.
     //
-    this.clean = function(callback) {
+    this.clean_printers = function(callback) {
         var self = this;
         if (self.printers) {
             async.each(self.printers, function(e) { e.close(); }, callback);
@@ -337,7 +345,7 @@ oerpSession = function(server, session_id) {
             callback();
     }
 
-    // 
+    //
     // Set session_id printer in server.
     //
     this.update = function(callback) {
@@ -381,10 +389,13 @@ oerpSession = function(server, session_id) {
             });
         }
 
-        self.clean(function(){
+        self.clean_printers(function(){
             query_local_printers( publish_printers, self.onchange );
         });
     };
 };
+
+oerpSession.prototype = new EventTarget();
+oerpSession.constructor = oerpSession;
 
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

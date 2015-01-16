@@ -8,26 +8,26 @@ control_server_events = {
         var push_printers = function(keys, printers) {
             if (keys.length) {
                 var key = keys.pop()
-                printers[key].get_id(function(result){
+                printers[key].get_info(function(result){
                     tmpPrinters.push({
                         'uid': session.uid,
                         'sid': session.session_id,
                         'name': key,
                         'protocol': printers[key].protocol,
                         'model': result.model,
-                        'pos': result.pos,
+                        'pos': result.pos || false,
                         'serialNumber': result.serialNumber,
-                        'fiscalStatus': fiscalState(result.fiscalStatus),
-                        'printerStatus': printerState(result.fiscalStatus),
-                        'firmwareName': result.firmwareName,
-                        'firmwareVersion': result.firmwareVersion,
+                        'fiscalStatus': printers[key].ar.fiscalState(result.fiscalStatus),
+                        'printerStatus': printers[key].ar.printerState(result.fiscalStatus),
+                        'firmwareName': result.firmwareName || false,
+                        'firmwareVersion': result.firmwareVersion || false,
                         });
                     console.log(printers);
                     console.log(key);
                     push_printers(keys, printers);
                 });
             } else {
-                session.send_info({event_id: event_id, printers: tmpPrinters}, callback);
+                session.send({event_id: event_id, printers: tmpPrinters}, callback);
             };
         };
 
@@ -36,13 +36,14 @@ control_server_events = {
             push_printers(keys, printers);
         }
 
-        console.log("Query local printers.");
+        console.debug("[EVENT] Query local printers.");
         query_local_printers( publish_printers );
     },
 };
 
 printer_server_events = {
     'short_test': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Short test.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -50,6 +51,7 @@ printer_server_events = {
         }
     },
     'large_test': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Large test.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -57,6 +59,7 @@ printer_server_events = {
         }
     },
     'advance_paper': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Advance paper.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -64,6 +67,7 @@ printer_server_events = {
         }
     },
     'cut_paper': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Cut paper.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -71,6 +75,7 @@ printer_server_events = {
         }
     },
     'open_fiscal_journal': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Open fiscal journal.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -78,6 +83,7 @@ printer_server_events = {
         }
     },
     'close_fiscal_journal': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Close fiscal journal.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -85,6 +91,7 @@ printer_server_events = {
         }
     },
     'shift_change': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Shift change.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -92,34 +99,42 @@ printer_server_events = {
         }
     },
     'get_status': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Get status.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
             printer.get_status(function(res){
-                var response = res;
+                var response = res || {'error': 'no answer'};
                 response['event_id'] = event_id;
                 response['printer_id'] = printer_id;
                 printer.get_datetime(function(res) {
-                    var date = res.date;
-                    var time = res.time;
-                    response['clock'] = "20"+date.slice(4,6)+"-"+date.slice(2,4)+"-"+date.slice(0,2)+" "+time.slice(0,2)+":"+time.slice(2,4)+":"+time.slice(4,6);
+                    if (res.date && res.time) {
+                        var date = res.date;
+                        var time = res.time;
+                        response['clock'] = "20"+date.slice(4,6)+"-"+date.slice(2,4)+"-"+date.slice(0,2)+" "+time.slice(0,2)+":"+time.slice(2,4)+":"+time.slice(4,6);
+                    } else {
+                        response['error']='no date-time';
+                    }
                     session.send(response,callback);
                 });
             });
         }
     },
     'read_attributes': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Read attributes.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
             printer.read_attributes(function(res){
-                res['event_id'] = event_id;
-                res['printer_id'] = printer_id;
-                session.send(res,callback);
+                var response = res || {'error': 'no answer'};
+                response['event_id'] = event_id;
+                response['printer_id'] = printer_id;
+                session.send(response,callback);
             });
         }
     },
     'write_attributes': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Write attributes.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -137,28 +152,33 @@ printer_server_events = {
         }
     },
     'get_counters': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Get counters.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
             printer.get_counters(function(res){
-                res['event_id'] = event_id;
-                res['printer_id'] = printer_id;
-                session.send(res,callback);
+                response = res || {'error': 'no answer'};
+                response['event_id'] = event_id;
+                response['printer_id'] = printer_id;
+                session.send(response,callback);
             });
         }
     },
     'cancel_fiscal_ticket': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Cancel fiscal ticket.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
             printer.cancel_fiscal_ticket(function(res){
-                res['event_id'] = event_id;
-                res['printer_id'] = printer_id;
-                session.send(res,callback);
+                response = res || {};
+                response['event_id'] = event_id;
+                response['printer_id'] = printer_id;
+                session.send(response,callback);
             });
         }
     },
     'make_fiscal_ticket': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Make fiscal ticket.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
@@ -166,32 +186,37 @@ printer_server_events = {
                     event_data['options'],
                     event_data['ticket'],
                     function(res){
-                        res['event_id'] = event_id;
-                        res['printer_id'] = printer_id;
-                        session.send(res,callback);
+                        response = res || {'error': 'no answer'};
+                        response['event_id'] = event_id;
+                        response['printer_id'] = printer_id;
+                        session.send(response,callback);
                     });
         }
     },
     'load_logos': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Load logos.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
             printer.load_logos(event_data['logos'],
                     function(res){
-                        res['event_id'] = event_id;
-                        res['printer_id'] = printer_id;
-                        session.send(res,callback);
+                        response = res || {};
+                        response['event_id'] = event_id;
+                        response['printer_id'] = printer_id;
+                        session.send(response,callback);
                     });
         }
      },
     'remove_logos': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Remove logos.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
             printer.delete_logo(function(res){
-                        res['event_id'] = event_id;
-                        res['printer_id'] = printer_id;
-                        session.send(res,callback);
+                        response = res || {};
+                        response['event_id'] = event_id;
+                        response['printer_id'] = printer_id;
+                        session.send(response,callback);
                     });
         }
      },

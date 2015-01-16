@@ -44,51 +44,69 @@ function login(callback) {
         console.debug("[SES] I dont need login if a session exists.");
         return
     };
-    
+
     // Login.
     chrome.storage.local.get(['server', 'session_id'], function(value) {
         console.debug("[SES] Creating the session.");
         session = new oerpSession(value.server, value.session_id);
-        session.onlogin = function(s) {
+        session.addListener('login', function(s) {
             console.log("Successful login.");
             chrome.storage.local.set({
                 server: session.server,
                 session_id: session.session_id, });
-                s.init_server_events(control_server_events, function() {
-                //s.update();
-            });
-        };
-        session.onlogout = function(s) {
+                session.init_server_events(control_server_events);
+        });
+        session.addListener('logout', function(s) {
             console.debug("[SES] Logout.");
             chrome.storage.local.set({
                 server: null,
                 session_id: null, });
-        };
-        session.onlogerror = function(s) {
+            session.session_id = null;
+
+        });
+        session.addListener('login_error', function(s) {
             console.debug("[SES] Login error. Forget session_id.");
             chrome.storage.local.set({
                 'session_id': null
             });
+            session.session_id = null;
+            session.message = "Login error"
             open_status(session);
-        };
-        session.onerror = function(s) {
+        });
+        session.addListener('error', function(s) {
             console.debug("[SES] Session error. Forget session_id.");
             for (i in session.receptor) session.receptor[i].close();
             chrome.storage.local.set({
                 'server': session.server,
                 'session_id': null
             });
+            session.session_id = null;
+            session.message = "Session error"
             open_status(session);
-        };
-        session.onexpired = function(s) {
+        });
+        session.addListener('expired', function(s) {
             console.debug("[SES] Session expired. Forget session_id.");
             for (i in session.receptor) session.receptor[i].close();
             chrome.storage.local.set({
                 'server': session.server,
                 'session_id': null
             });
+            session.session_id = null;
+            session.message = "Login expired"
             open_status(session);
-        };
+        });
+        session.addListener('spool_open', function(s) {
+            console.debug("[SES] Open spool.");
+        });
+        session.addListener('spool_close', function(s) {
+            console.debug("[SES] Close spool.");
+        });
+        session.addListener('spool_error', function(s) {
+            console.debug("[SES] Error spool.");
+        });
+        session.addListener('spool_message', function(s) {
+            console.debug("[SES] Message spool.");
+        });
         session.init(callback);
     });
 };
@@ -100,7 +118,14 @@ login(function(){
         console.debug("[SYS] Launch status");
         open_status(session);
     });
+    chrome.app.runtime.onRestarted.addListener(function(){
+        console.debug("[SYS] Restart");
+        session.clean_server_events();
+    })
 });
 
 poolingPrinter();
+
+
+
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
