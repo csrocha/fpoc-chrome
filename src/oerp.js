@@ -129,12 +129,16 @@ oerpSession = function(server, session_id) {
             setTimeout(function() { self.init_server_events(event_function_map, callback); }, 3000);
         }
         
-        this.set_server_events("session_id=" + this.session_id,
-                event_function_map,
-                null,
-                return_callback,
-                callback,
-                retry);
+        if (this.session_id) {
+            this.set_server_events("session_id=" + this.session_id,
+                    event_function_map,
+                    null,
+                    return_callback,
+                    callback,
+                    retry);
+        } else {
+            retry(event_function_map);
+        }
     };
 
     //
