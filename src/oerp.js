@@ -37,14 +37,17 @@ oerpSession = function(server, session_id) {
     //
     this.set_server_events = function(params, event_function_map, data, return_callback, callback, retry) {
         var self = this;
+        var url = this.server + "/fp/spool?" + params;
 
         console.log("Create spool ", params);
 
-        var receptor = new EventSource(this.server + "/fp/spool?" + params);
-        if (receptor.url in self.spools) {
+        if (url in self.spools) {
             console.log("Repeated spool. Ignore it.");
             return;
         }
+
+        var receptor = new EventSource(url);
+
         self.spools[receptor.url] = receptor;
 
         receptor.onopen = function(ev) {
@@ -55,6 +58,7 @@ oerpSession = function(server, session_id) {
             self.spools[url].close();
             delete self.spools[url];
             self.dispatchEvent({type: 'spool_error', 'event': ev});
+            if (retry) retry(event_function_map, callback);
         };
         receptor.onmessage = function(ev) {
             self.dispatchEvent({type: 'spool_message', 'event': ev});
@@ -63,6 +67,10 @@ oerpSession = function(server, session_id) {
         receptor.addEventListener('close', function() {
             debugger;
         } , false);
+
+        var _callback = function() {
+            if (callback) callback(receptor.url);
+        }
 
         async.each(takeKeys(event_function_map), function(event_key, __callback) {
                 var event_callback = function(ev) {
@@ -73,7 +81,7 @@ oerpSession = function(server, session_id) {
                 receptor.addEventListener(event_key, event_callback, false);
                 __callback();
             },
-            callback);
+            _callback);
     };
 
     //
@@ -82,19 +90,19 @@ oerpSession = function(server, session_id) {
     this.add_printer = function(printer, event_function_map, callback) {
         var self = this;
 
-        if (printer.is_connected || !self.uid) {
+        if (printer.spool in self.spools || !self.uid) {
             callback();
             return;
         }
 
-        printer.is_connected = true;
-
         var return_callback = function(mess, ev) {
             console.log(mess);
         };
-        var _callback = function(ev) {
+
+        var _callback = function(url) {
+            printer.spool = url;
             self.dispatchEvent({type: 'connection', 'printer': printer});
-            callback(ev);
+            if (callback) callback(url);
         };
 
         this.set_server_events("session_id=" + this.session_id + "&printer_id=" + encodeURIComponent(printer.name),
@@ -116,11 +124,17 @@ oerpSession = function(server, session_id) {
             } else
                 if(self.update) self.update();
         };
+
+        var retry = function(event_function_map) {
+            setTimeout(function() { self.init_server_events(event_function_map, callback); }, 3000);
+        }
+        
         this.set_server_events("session_id=" + this.session_id,
                 event_function_map,
                 null,
                 return_callback,
-                callback);
+                callback,
+                retry);
     };
 
     //
