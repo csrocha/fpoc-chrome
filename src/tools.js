@@ -103,31 +103,36 @@ var query_local_printers = function(callback, onchange) {
             callback();
             return;
         }
+        // Check printer
+        function check_printer(printer, result, callback) {
+            if (result && !result.error) {
+                var key = printer.protocol + '://' +
+                    result.model + ":" +
+                    result.serialNumber;
+                if (key in local_printers) {
+                    printer.close();
+                } else {
+                    console.debug("[FP] New printer " + key);
+                    printer.name = key;
+                    local_printers[key] = printer;
+                    change=true;
+                }
+            } else {
+                console.debug("[FP] Ignored device.");
+                if (result && result.error) {
+                    console.debug("[FP-ERROR]", result.error);
+                }
+                printer.close();
+            };
+            callback();
+        };
         // Go for device.
         switch (protocol) {
         case 'epson_d_ar':
             epson_d_ar_open(device, port,
                 function(printer) {
                   if (printer) {
-                    printer.get_info(function(result){
-                        if (result) {
-                            var key = printer.protocol + '://' +
-                                result.model + ":" +
-                                result.serialNumber;
-                            if (key in local_printers) {
-                                printer.close();
-                            } else {
-                                console.debug("[FP] New printer " + key);
-                                printer.name = key;
-                                local_printers[key] = printer;
-                                change=true;
-                            }
-                        } else {
-                            console.debug("[FP] Device yet taken");
-                            printer.close();
-                        };
-                        callback();
-                    });
+                    printer.get_info(function(result){ check_printer(printer, result, callback); });
                   } else {
                     console.debug("[FP] No printer found.");
                     callback();
@@ -138,25 +143,7 @@ var query_local_printers = function(callback, onchange) {
             epson_e_ar_open(device, port,
                 function(printer) {
                   if (printer) {
-                    printer.get_info(function(result){
-                        if (result) {
-                            var key = printer.protocol + '://' +
-                                result.model + ":" +
-                                result.serialNumber;
-                            if (key in local_printers) {
-                                printer.close();
-                            } else {
-                                console.debug("[FP] New printer " + key);
-                                printer.name = key;
-                                local_printers[key] = printer;
-                                change=true;
-                            }
-                        } else {
-                            console.debug("[FP] Device yet taken");
-                            printer.close();
-                        };
-                        callback();
-                    });
+                    printer.get_info(function(result){ check_printer(printer, result, callback); });
                   } else {
                     console.debug("[FP] No printer found.");
                     callback();

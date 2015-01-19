@@ -221,34 +221,34 @@ var epson_common = function(interface, sequence_start, sequence_size) {
         self.interface.send(self.ackbuf.buffer, function(info) { callback(info.resultCode == 0); });
     };
 
-    this.waitResponse = function(types, fields, callback) {
+    this.waitResponse = function(command, types, fields, callback) {
         var types = types;
         var self = this;
         var local_callback = function(info) {
                 if (info && info.resultCode == 0) {
                     var dv = new DataView(info.data);
                     if (info.data.byteLength==0) {
-                        self.waitResponse(types, fields, callback);
+                        self.waitResponse(command, types, fields, callback);
                     } else 
                     if (info.data.byteLength==1 && dv.getUint8(0) == 0x15) {
                         console.error("USB-NACK");
-                        self.sendACK(self.waitResponse.bind(self, types, fields, callback));
+                        self.sendACK(self.waitResponse.bind(self, command, types, fields, callback));
                         console.error("Recovering");
                         sequence = 0;
                         callback({'error': 'NACK'});
                     } else
                     if (info.data.byteLength==1 && dv.getUint8(0) == 0x06) {
-                        self.sendACK(self.waitResponse.bind(self, types, fields, callback));
+                        self.sendACK(self.waitResponse.bind(self, command, types, fields, callback));
                     } else 
                     if (info.data.byteLength>1 && dv.getUint8(1) == 0x80) {
                         self.sendACK(function(res){
-                            self.waitResponse(types, fields, callback);
+                            self.waitResponse(command, types, fields, callback);
                         });
                     } else
                     if (info.data.byteLength>1) {
                         self.sendACK(function(res){
                             try {
-                                console.debug("H", self.humanize(info.data));
+                                console.debug("[CMD]", command, self.humanize(info.data));
                                 callback(self.unpack(types, fields, info.data));
                             } catch(err) {
                                 callback({'error': err.message});
@@ -286,7 +286,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                 function() {
                     var __callback__ = function(info) {
                         if (info && info.resultCode == 0) {
-                            self.waitResponse(out_types, out_dict, local_callback);
+                            self.waitResponse(name, out_types, out_dict, local_callback);
                         } else {
                             local_callback();
                         }
