@@ -183,6 +183,14 @@ function do_alert(message) {
     }, 4000);
 };
 
+function do_printer_alert(message, res) {
+    if (res.result) {
+        do_alert(res.strResult);
+    } else {
+        do_alert(message);
+    };
+};
+
 function do_message(dir, message) {
     var message_element = document.createElement("p");
     message_element.textContent = dir + "|" + message;
@@ -252,30 +260,28 @@ function update_view() {
             var getPrinter = function(e) { return session.printers[e.target.parentNode.parentNode.parentNode.parentNode.getAttribute('printer_id')]; };
 
             cell2.childNodes[0].addEventListener('click', function(e) {
-                getPrinter(e).short_test(function(res) { do_alert("Executed short test."); });
+                getPrinter(e).short_test(function(res) { do_printer_alert("Executed short test", res); });
             });
             cell2.childNodes[1].addEventListener('click', function(e) {
-                getPrinter(e).large_test(function(res) { do_alert("Executed large test."); });
+                getPrinter(e).large_test(function(res) { do_printer_alert("Executed large test.", res); });
             });
             cell2.childNodes[2].addEventListener('click', function(e) {
-                getPrinter(e).advance_paper(1, function(res) { do_alert("Executed advance paper."); });
+                getPrinter(e).advance_paper(1, function(res) { do_printer_alert("Executed advance paper.", res); });
             });
             cell2.childNodes[3].addEventListener('click', function(e) {
-                getPrinter(e).cut_paper(function(res) { do_alert("Executed cut paper."); });
+                getPrinter(e).cut_paper(function(res) { do_printer_alert("Executed cut paper.", res); });
             });
             cell2.childNodes[4].addEventListener('click', function(e) {
-                getPrinter(e).open_fiscal_journal(function(res) { do_alert("Executed Open day."); });
+                getPrinter(e).open_fiscal_journal(function(res) { do_printer_alert("Executed Open day.", res); });
             });
             cell2.childNodes[5].addEventListener('click', function(e) {
-                getPrinter(e).close_fiscal_journal(function(res) { do_alert("Executed Close day."); });
+                getPrinter(e).close_fiscal_journal(function(res) { do_printer_alert("Executed Close day.", res); });
             });
             cell2.childNodes[6].addEventListener('click', function(e) {
-                getPrinter(e).shift_change(function(res) { console.log(res); do_alert("Executed Change Shift."); });
+                getPrinter(e).shift_change(function(res) { console.log(res); do_printer_alert("Executed Change Shift.", res); });
             });
             cell2.childNodes[7].addEventListener('click', function(e) {
-                getPrinter(e).cancel_fiscal_ticket(
-                    function(res) { console.log(res); do_alert("Cancel ticket done."); }
-                    );
+                getPrinter(e).cancel_fiscal_ticket( function(res) { console.log(res); do_printer_alert("Cancel ticket done.", res); });
             });
     };
     if (printer_table.rows.length == 0) {
