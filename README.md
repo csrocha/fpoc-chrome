@@ -8,6 +8,10 @@ This application is only works in Chrome as an Application. It's need USB and RS
 
 Actually the only supported server is Odoo, using the [odoo-fpoc](https://github.com/csrocha/odoo_fpoc) addon. I can accept issues for develop connectors for other SaaS.
 
+## Installation
+
+Windows need install a generic driver for printer. You need use [Zadig](http://zadig.akeo.ie/) for these. View issue [#3](../../issues/3) for more information.
+
 ## List of Supported Printers
 
 ### The column _State_
