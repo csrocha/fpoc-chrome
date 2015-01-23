@@ -10,7 +10,7 @@ Actually the only supported server is Odoo, using the [odoo-fpoc](https://github
 
 ## Installation
 
-Windows need install a generic driver for printer. You need use [Zadig](http://zadig.akeo.ie/) for these. View issue [#3](../../issues/3) for more information.
+Read the [Wiki](https://github.com/csrocha/fpoc-chrome/wiki)
 
 ## List of Supported Printers
 
