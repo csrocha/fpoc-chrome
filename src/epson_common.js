@@ -175,17 +175,26 @@ var epson_common = function(interface, sequence_start, sequence_size) {
 	    var l = 0;
 	    var v = new DataView(data);
 	    for (var i=0; i < types.length; i++) {
-		if (['W'].indexOf(types[i]) >= 0) {
+	      Win = ['W'].indexOf(types[i]);
+		if (Win == 8) { // Captura el error si hay y termina de parsear.
+		    var nb = self.bufUnescape(data.slice(l, l+4));
+		    var nv = new DataView(nb);
+		    var ret = nv.getUint16(0, false);
+		    l+=2+self.escape_counter;
+		    r[fields[f++]] = ret;
+		    if (ret > 0) break;
+		} else
+		if (Win >= 0) {
 		    var nb = self.bufUnescape(data.slice(l, l+4));
 		    var nv = new DataView(nb);
 		    r[fields[f++]] = nv.getUint16(0, false);
 		    l+=2+self.escape_counter;
-		} else  
+		} else
 		if (['A','P','L','N','Y','R','D','T'].indexOf(types[i]) >= 0) {
 		    var nb = self.bufUnescape(data.slice(l), [FLD,ETX]);
 		    r[fields[f++]] = ab2str(nb);
 		    l+=nb.byteLength+self.escape_counter;
-		} else  
+		} else
 		if (['<'].indexOf(types[i]) >= 0) {
 		    var d = v.getUint8(l++);
 		} else
@@ -197,7 +206,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
 		} else
 		if (['S'].indexOf(types[i]) >= 0) {
 		    var d = v.getUint8(l++);
-		} else 
+		} else
 		if (['E'].indexOf(types[i]) >= 0) {
 		    var d = v.getUint8(l++);
 		} else {
@@ -229,7 +238,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                     var dv = new DataView(info.data);
                     if (info.data.byteLength==0) {
                         self.waitResponse(types, fields, callback);
-                    } else 
+                    } else
                     if (info.data.byteLength==1 && dv.getUint8(0) == 0x15) {
                         console.error("USB-NACK");
                         self.sendACK(self.waitResponse.bind(self, types, fields, callback));
@@ -239,7 +248,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                     } else
                     if (info.data.byteLength==1 && dv.getUint8(0) == 0x06) {
                         self.sendACK(self.waitResponse.bind(self, types, fields, callback));
-                    } else 
+                    } else
                     if (info.data.byteLength>1 && dv.getUint8(1) == 0x80) {
                         self.sendACK(function(res){
                             self.waitResponse(types, fields, callback);
@@ -265,9 +274,9 @@ var epson_common = function(interface, sequence_start, sequence_size) {
     this.command = function(name, in_pack, out_types, out_dict, callback) {
         var self=this;
         var callback = callback;
-        
+
         if (self.busy) {
-            setTimeout(function() { 
+            setTimeout(function() {
                 self.command(name, in_pack, out_types, out_dict, callback);
             }, 5);
             return;
@@ -291,6 +300,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                             local_callback();
                         }
                     };
+                    console.debug("H", name, self.humanize(in_pack));
                     self.interface.send(in_pack, __callback__);
                 }, function() {
                     local_callback();
