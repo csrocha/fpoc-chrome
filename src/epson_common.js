@@ -167,56 +167,6 @@ var epson_common = function(interface, sequence_start, sequence_size) {
 
     this.unpack = function() {
         var self = this;
-<<<<<<< HEAD
-	    var types = arguments[0];
-	    var fields = arguments[1];
-	    var data = arguments[2];
-	    var r = {};
-	    var f = 0;
-	    var l = 0;
-	    var v = new DataView(data);
-	    for (var i=0; i < types.length; i++) {
-	      Win = ['W'].indexOf(types[i]);
-		if (Win == 8) { // Captura el error si hay y termina de parsear.
-		    var nb = self.bufUnescape(data.slice(l, l+4));
-		    var nv = new DataView(nb);
-		    var ret = nv.getUint16(0, false);
-		    l+=2+self.escape_counter;
-		    r[fields[f++]] = ret;
-		    if (ret > 0) break;
-		} else
-		if (Win >= 0) {
-		    var nb = self.bufUnescape(data.slice(l, l+4));
-		    var nv = new DataView(nb);
-		    r[fields[f++]] = nv.getUint16(0, false);
-		    l+=2+self.escape_counter;
-		} else
-		if (['A','P','L','N','Y','R','D','T'].indexOf(types[i]) >= 0) {
-		    var nb = self.bufUnescape(data.slice(l), [FLD,ETX]);
-		    r[fields[f++]] = ab2str(nb);
-		    l+=nb.byteLength+self.escape_counter;
-		} else
-		if (['<'].indexOf(types[i]) >= 0) {
-		    var d = v.getUint8(l++);
-		} else
-		if (['>'].indexOf(types[i]) >= 0) {
-		    var d = v.getUint8(l++);
-		} else
-		if (['_'].indexOf(types[i]) >= 0) {
-		    var d = v.getUint8(l++);
-		} else
-		if (['S'].indexOf(types[i]) >= 0) {
-		    var d = v.getUint8(l++);
-		} else
-		if (['E'].indexOf(types[i]) >= 0) {
-		    var d = v.getUint8(l++);
-		} else {
-		    console.debug('Type ', types[i], ' not implemented');
-		}
-	    }
-	    return r;
-	}
-=======
         var types = arguments[0];
         var fields = arguments[1];
         var data = arguments[2];
@@ -225,43 +175,46 @@ var epson_common = function(interface, sequence_start, sequence_size) {
         var l = 0;
         var v = new DataView(data);
         for (var i=0; i < types.length; i++) {
-            if (['W'].indexOf(types[i]) >= 0) {
-                var nb = self.bufUnescape(data.slice(l, l+4));
-                var nv = new DataView(nb);
-                field = fields[f++];
-                r[field] = nv.getUint16(0, false);
-                l+=2+self.escape_counter;
-                if (field == 'result' && r[field] != 0) {
-                    console.error("Printer message error:", r[field]);
-                    break;
-                }
-            } else 
-            if (['A','P','L','N','Y','R','D','T'].indexOf(types[i]) >= 0) {
-                var nb = self.bufUnescape(data.slice(l), [FLD,ETX]);
-                r[fields[f++]] = ab2str(nb);
-                l+=nb.byteLength+self.escape_counter;
-            } else  
-            if (['<'].indexOf(types[i]) >= 0) {
-                var d = v.getUint8(l++);
-            } else
-            if (['>'].indexOf(types[i]) >= 0) {
-                var d = v.getUint8(l++);
-            } else
-            if (['_'].indexOf(types[i]) >= 0) {
-                var d = v.getUint8(l++);
-            } else
-            if (['S'].indexOf(types[i]) >= 0) {
-                var d = v.getUint8(l++);
-            } else 
-            if (['E'].indexOf(types[i]) >= 0) {
-                var d = v.getUint8(l++);
-            } else {
-                console.debug('Type ', types[i], ' not implemented');
-            }
+          Win = ['W'].indexOf(types[i]);
+        if (Win == 8) { // Captura el error si hay y termina de parsear.
+            var nb = self.bufUnescape(data.slice(l, l+4));
+            var nv = new DataView(nb);
+            var ret = nv.getUint16(0, false);
+            l+=2+self.escape_counter;
+            r[fields[f++]] = ret;
+            if (ret > 0) break;
+        } else
+        if (Win >= 0) {
+            var nb = self.bufUnescape(data.slice(l, l+4));
+            var nv = new DataView(nb);
+            r[fields[f++]] = nv.getUint16(0, false);
+            l+=2+self.escape_counter;
+        } else
+        if (['A','P','L','N','Y','R','D','T'].indexOf(types[i]) >= 0) {
+            var nb = self.bufUnescape(data.slice(l), [FLD,ETX]);
+            r[fields[f++]] = ab2str(nb);
+            l+=nb.byteLength+self.escape_counter;
+        } else
+        if (['<'].indexOf(types[i]) >= 0) {
+            var d = v.getUint8(l++);
+        } else
+        if (['>'].indexOf(types[i]) >= 0) {
+            var d = v.getUint8(l++);
+        } else
+        if (['_'].indexOf(types[i]) >= 0) {
+            var d = v.getUint8(l++);
+        } else
+        if (['S'].indexOf(types[i]) >= 0) {
+            var d = v.getUint8(l++);
+        } else
+        if (['E'].indexOf(types[i]) >= 0) {
+            var d = v.getUint8(l++);
+        } else {
+            console.debug('Type ', types[i], ' not implemented');
+        }
         }
         return r;
     }
->>>>>>> 431048843cd83356afabd02cb570ecc425be3d76
 
     this.unbits = function(masks, shifts, fields, data) {
         var self = this;
@@ -284,13 +237,8 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                 if (info && info.resultCode == 0) {
                     var dv = new DataView(info.data);
                     if (info.data.byteLength==0) {
-<<<<<<< HEAD
-                        self.waitResponse(types, fields, callback);
-                    } else
-=======
                         self.waitResponse(command, types, fields, callback);
                     } else 
->>>>>>> 431048843cd83356afabd02cb570ecc425be3d76
                     if (info.data.byteLength==1 && dv.getUint8(0) == 0x15) {
                         console.error("USB-NACK");
                         self.sendACK(self.waitResponse.bind(self, command, types, fields, callback));
@@ -299,13 +247,8 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                         callback({'error': 'NACK'});
                     } else
                     if (info.data.byteLength==1 && dv.getUint8(0) == 0x06) {
-<<<<<<< HEAD
-                        self.sendACK(self.waitResponse.bind(self, types, fields, callback));
-                    } else
-=======
                         self.sendACK(self.waitResponse.bind(self, command, types, fields, callback));
                     } else 
->>>>>>> 431048843cd83356afabd02cb570ecc425be3d76
                     if (info.data.byteLength>1 && dv.getUint8(1) == 0x80) {
                         self.sendACK(function(res){
                             self.waitResponse(command, types, fields, callback);
