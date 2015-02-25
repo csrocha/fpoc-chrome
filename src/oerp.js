@@ -128,7 +128,7 @@ oerpSession = function(server, session_id) {
         var retry = function(event_function_map) {
             setTimeout(function() { self.init_server_events(event_function_map, callback); }, 3000);
         }
-        
+
         if (this.session_id) {
             this.set_server_events("session_id=" + this.session_id,
                     event_function_map,
@@ -287,6 +287,7 @@ oerpSession = function(server, session_id) {
             self.username = null;
             self.uid = null;
             self.session = null;
+            self.spools = {};
             self.dispatchEvent('logout');
             if (callback) { callback(mess); };
         }
