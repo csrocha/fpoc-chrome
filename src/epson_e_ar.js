@@ -374,6 +374,8 @@ var epson_e_ar = function(interface, sequence) {
                 self.command_callback(callback));
     }
 
+    // 6.5.3 Informe de Jornada (08 03)
+
     // 6.5.4 Información Electrónica General de la Jornada Fiscal en Curso (08 0A)
     this._get_fiscal_information = function(from_last_x, callback) {
         var ext = (from_last_x && 0x0001);
@@ -416,6 +418,27 @@ var epson_e_ar = function(interface, sequence) {
                 self.command_callback(callback));
     }
 
+    //
+    // 6.5.5 Información Electrónica de Impuestos de la Jornada Fiscal en Curso (08 0B)
+    // 6.5.6 Información Electrónica de Percepciones de la Jornada Fiscal en Curso (08 0C)
+    // 6.5.7 Información Electrónica de Impuestos en Notas de Crédito de la Jornada Fiscal en Curso (08 0D)
+    // 6.5.8 Información Electrónica de Percepciones en Notas de Crédito de la Jornada Fiscal en Curso (08 0E)
+    //
+    // 6.5.9 Auditoría Resumida de Jornadas Fiscales por Rango de Fechas (08 10)
+    // 6.5.10 Auditoría Resumida de Jornadas Fiscales por Rango de Cierres Z (08 11)
+    // 6.5.11 Comenzar Auditoría Detallada de Jornadas Fiscales por Rango de Fechas (08 12)
+    // 6.5.12 Comenzar Auditoría Detallada de Jornadas Fiscales por Rango de Cierres Z (08 13)
+    // 6.5.13 Continuar Auditoría Detallada de Jornadas Fiscales (08 14)
+    // 6.5.15 Cancelar Auditoría Detallada de Jornadas Fiscales (08 16)
+    // 6.5.16 Auditoría Resumida de Jornadas Fiscales por Rango de Fechas (de Contador) (08 20)
+    // 6.5.17 Auditoría Resumida de Jornadas Fiscales por Rango de Cierres Z (de Contador) (08 21)
+    // 6.5.18 Comenzar Auditoría Detallada de Jornadas Fiscales por Rango de Fechas (de Contador) (08 22)
+    // 6.5.19 Comenzar Auditoría Detallada de Jornadas Fiscales por Rango de Cierres Z (de Contador) (08 23)
+    // 6.5.20 Continuar Auditoría Detallada de Jornadas Fiscales (de Contador) (08 24)
+    // 6.5.21 Finalizar Auditoría Detallada de Jornadas Fiscales (de Contador) (08 25)
+    // 6.5.22 Cancelar Auditoría Detallada de Jornadas Fiscales (de Contador) (08 26)
+    //
+
     // 6.5.23 Información de Contadores (08 30)
     this._get_counters = function(callback) {
         self.common.command(
@@ -438,7 +461,11 @@ var epson_e_ar = function(interface, sequence) {
                 self.command_callback(callback));
     }
 
+    // Comandos de Tique Fiscal (0A)
+
+    //
     // Comandos de Tique-Factura / Tique-Nota de Débito (0B)
+    //
     // 6.7.1 Abrir (0B 01)
     //
     // partner_document_type =  D: DNI,
@@ -791,6 +818,10 @@ var epson_e_ar = function(interface, sequence) {
                  'document_type'],
                 self.command_callback(callback));
     }
+
+    //
+    // 
+    
 
     //
     // Wrapper fields
