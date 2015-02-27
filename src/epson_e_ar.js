@@ -461,21 +461,58 @@ var epson_e_ar = function(interface, sequence) {
                 self.command_callback(callback));
     }
 
+    // 
     // Comandos de Tique Fiscal (0A)
+    //
+    // 6.6.1 Abrir (0A 01)
+    // 6.6.2 Item (0A 02)
+    // 6.6.3 Subtotal (0A 03)
+    // 6.6.4 Descuentos/Recargos (0A 04)
+    // 6.6.5 Pagos (0A 05)
+    // 6.6.6 Cerrar (0A 06)
+    // 6.6.7 Cancelar (0A 07)
+    // 6.6.8 Configurar Preferencias (0A 08)
+    // 6.6.9 Obtener Configuración de Preferencias (0A 09)
+    // 6.6.10 Información (0A 0A)
+    // 6.6.11 Información de IVA (0A 0B)
+    // 6.6.12 Información de Pagos (0A 0C)
+    // 6.6.13 Información de Ventas (0A 0D)
+    // 6.6.14 Información de Impuestos Internos (0A 0E)
+    // 6.6.15 Información de última respuesta (0A 10)
+    // 6.6.16 Tique Unitario (0A 30)
+    //
 
     //
     // Comandos de Tique-Factura / Tique-Nota de Débito (0B)
     //
     // 6.7.1 Abrir (0B 01)
     //
-    // partner_document_type =  D: DNI,
+    // Realiza la apertura de un documento tique-factura fiscal.
+    //
+    // INPUT
+    //
+    // triplicated = Verdadero: Impresión en triplicado, sino en duplicado.
+    // store_descriptions = Verdadero: Almacena descripciones de ítems.
+    // keep_description_attributes = Verdadero: Conservar atributos de impresión de las descripciones.
+    // store_extra_descriptions = Verdadero: Almacenar sólo primer descripción extra.
+    // turist_ticket = Verdadero: Tique Factura Turista, sino Tique Factura Normal.
+    // debit_note = Verdadero: Tique Nota de Debito, sino Tique Factura.
+    // partner_name = Nombre del Comprador, línea #1
+    // partner_name_2 = Nombre del Comprador, línea #2
+    // partner_address = Domicilio del Comprador, línea #1
+    // partner_address_2 = Domicilio del Comprador, línea #2
+    // partner_address_3 = Domicilio del Comprador, línea #3
+    // partner_document_type = Tipo de Documento del Comprador
+    //                          D: DNI,
     //                          L: CUIL,
     //                          T: CUIT,
     //                          C: Cedula de Identidad,
     //                          P: Pasaporte,
     //                          V: Libreta Civica,
     //                          E: Libreta Enrolamiento.
-    // partner_document_number = I: Inscripto,
+    // partner_document_number = Número de Documento del Comprador
+    // partner_responsability = Responsabilidad ante el IVA del Comprador
+    //                           I: Inscripto,
     //                           N: No responsable,
     //                           M: Monotributista,
     //                           E: Exento,
@@ -483,6 +520,11 @@ var epson_e_ar = function(interface, sequence) {
     //                           F: Consumidor final,
     //                           T: Monotributista social,
     //                           P: Monotributista trabajador independiente promovido.
+    // related_document = Línea de Remitos Asociados #1
+    // related_document_2 = Línea de Remitos Asociados #2
+    // turist_check = Línea de Cheque de Reintegro para Turista
+    //
+    // OUTPUT
     //
     this._open_fiscal_ticket = function(
             triplicated,
@@ -820,7 +862,183 @@ var epson_e_ar = function(interface, sequence) {
     }
 
     //
-    // 
+    // 6.8 Comandos de Tique-Nota de Crédito (0D)
+    //
+
+    //
+    // 6.8.1 Abrir (0D 01)
+    //
+    // Realiza la apertura de un documento tique-factura fiscal.
+    //
+    // triplicated = Verdadero: Impresión en triplicado, sino en duplicado.
+    // partner_name = Nombre del Comprador, línea #1
+    // partner_name_2 = Nombre del Comprador, línea #2
+    // partner_address = Domicilio del Comprador, línea #1
+    // partner_address_2 = Domicilio del Comprador, línea #2
+    // partner_address_3 = Domicilio del Comprador, línea #3
+    // partner_document_type = Tipo de Documento del Comprador
+    //                          D: DNI,
+    //                          L: CUIL,
+    //                          T: CUIT,
+    //                          C: Cedula de Identidad,
+    //                          P: Pasaporte,
+    //                          V: Libreta Civica,
+    //                          E: Libreta Enrolamiento.
+    // partner_document_number = Número de Documento del Comprador
+    // partner_responsability = Responsabilidad ante el IVA del Comprador
+    //                           I: Inscripto,
+    //                           N: No responsable,
+    //                           M: Monotributista,
+    //                           E: Exento,
+    //                           U: No categorizado,
+    //                           F: Consumidor final,
+    //                           T: Monotributista social,
+    //                           P: Monotributista trabajador independiente promovido.
+    // related_document = Línea de Remitos Asociados #1
+    // related_document_2 = Línea de Remitos Asociados #2
+    //
+    this._open_fiscal_ticket_nc = function(
+            triplicated,
+            partner_name,
+            partner_name_2,
+            partner_address,
+            partner_address_2,
+            partner_address_3,
+            partner_document_type,
+            partner_document_number,
+            partner_responsability,
+            related_document,
+            related_document_2,
+            callback) {
+        var ext = (triplicated           && 0x0002);
+
+        self.common.command(
+                'open_fiscal_ticket',
+                self.common.pack("<SW_W_R_R_R_R_R_L_A_L_R_R>*", sequence++, 0x0D01, ext,
+                        partner_name,
+                        partner_name_2,
+                        partner_address,
+                        partner_address_2,
+                        partner_address_3,
+                        partner_document_type,
+                        partner_document_number,
+                        partner_responsability,
+                        related_document,
+                        related_document_2),
+                '<SW_W__W_>*',
+                ['printerStatus', 'fiscalStatus', 'result'],
+                self.command_callback(callback));
+    }
+
+    // 6.8.2 Item (0D 02)
+    //
+    // Realiza la emisión de ítem de venta o la devolución de un ítem en forma total o parcial. Acumula los
+    // importes facturados en la memoria de trabajo y calcula los impuestos de acuerdo a la tasa de
+    // impuestos enviada. Permite la emisión de ítems de bonificación y su correspondiente anulación.
+    // INPUT
+    //
+    // item_action = sale_item: Item de venta.
+    //               cancel_sale_item: Anulación de ítem de venta.
+    //               return_can: Item de retorno de envases.
+    //               cancel_return_can: Anulación de ítem de retorno de envases.
+    //               return_item: Item de retorno.
+    //               cancel_return_item: Anulación de ítem de retorno.
+    //               discount_item: Item de descuento.
+    //               cancel_discount_item: Anulación de ítem de descuento.
+    // as_gross = Considerar parámetros como montos Brutos.
+    // send_subtotal = Envía campo Subtotal parcial del tique.
+    // check_item = Marcar ítem.
+    // collect_type = q: Contabilizar ítem de venta igual a la cantidad Q.
+    //                unit: Contabilizar ítem de venta como cantidad unitaria (bulto).
+    //                none: No contabilizar ítem de venta en cantidad de unidades.
+    // large_label = Imprime leyenda larga.
+    // first_line_label = Imprime leyenda en la primera línea de descripción.
+    // description = Descripción extra #1
+    // description_2 = Descripción extra #2
+    // description_3 = Descripción extra #3
+    // description_4 = Descripción extra #4
+    // item_description = Descripción del ítem
+    // quantity = Cantidad
+    // unit_price = Precio unitario
+    // vat_rate = Tasa de IVA
+    // fixed_taxes = Impuestos internos fijos
+    // taxes_rate = Coeficiente de impuestos internos porcentuales
+    //
+    // OUTPUT
+    //
+    // subtotal = Subtotal parcial del tique-factura o tique-nota de débito.
+    //
+    this._item_fiscal_ticket_nc = function(
+            item_action,
+            as_gross,
+            send_subtotal,
+            check_item,
+            collect_type,
+            large_label,
+            first_line_label,
+            description,
+            description_2,
+            description_3,
+            description_4,
+            item_description,
+            quantity,
+            unit_price,
+            vat_rate,
+            fixed_taxes,
+            taxes_rate,
+            callback) {
+        var ext = (item_action == 'sale_item'            && 0x0000) |
+                  (item_action == 'cancel_sale_item'     && 0x0001) |
+                  (item_action == 'return_can'           && 0x0002) |
+                  (item_action == 'cancel_return_can'    && 0x0003) |
+                  (item_action == 'return_item'          && 0x0004) |
+                  (item_action == 'cancel_return_item'   && 0x0005) |
+                  (item_action == 'discount_item'        && 0x0006) |
+                  (item_action == 'cancel_discount_item' && 0x0007) |
+                  (as_gross                              && 0x0008) |
+                  (send_subtotal                         && 0x0010) |
+                  (check_item                            && 0x0020) |
+                  (collect_type == 'q'                   && 0x0000) |
+                  (collect_type == 'unit'                && 0x0040) |
+                  (collect_type == 'none'                && 0x0080) |
+                  (large_label                           && 0x1000) |
+                  (first_line_label                      && 0x2000);
+        self.common.command(
+                'item_fiscal_ticket',
+                self.common.pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0D02, ext,
+                        description,
+                        description_2,
+                        description_3,
+                        description_4,
+                        item_description,
+                        quantity,
+                        unit_price,
+                        vat_rate,
+                        fixed_taxes,
+                        taxes_rate),
+                '<SW_W__W_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'subtotal'],
+                self.command_callback(callback));
+    }
+
+    // 6.8.3 Subtotal (0D 03)
+    // 6.8.4 Descuentos/Recargos (0D 04)
+    // VConfidencial
+    // 6.8.5 Pagos (0D 05)
+    // 6.8.6 Cerrar (0D 06)
+    // 6.8.7 Cancelar (0D 07)
+    // 6.8.8 Configurar Preferencias (0D 08)
+    // 6.8.9 Obtener Configuración de Preferencias (0D 09)
+    // 6.8.10 Información (0D 0A)
+    // 6.8.11 Información de IVA (0D 0B)
+    // 6.8.12 Información de Pagos (0D 0C)
+    // 6.8.13 Información de Ventas (0D 0D)
+    // 6.8.14 Información de Impuestos Internos (0D 0E)
+    // 6.8.15 Información de Percepciones (0D 0F)
+    // 6.8.16 Información de última respuesta (0D 10)
+    // 6.8.17 Percepciones (0D 20)
+    //
     
 
     //
