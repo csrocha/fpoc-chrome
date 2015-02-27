@@ -526,7 +526,7 @@ var epson_e_ar = function(interface, sequence) {
     //
     // OUTPUT
     //
-    this._open_fiscal_ticket = function(
+    this._open_ticket_factura = function(
             triplicated,
             store_descriptions,
             keep_description_attributes,
@@ -553,7 +553,7 @@ var epson_e_ar = function(interface, sequence) {
             (debit_note                  && 0x2000);
 
         self.common.command(
-                'open_fiscal_ticket',
+                'open_ticket_factura',
                 self.common.pack("<SW_W_R_R_R_R_R_L_A_L_R_R_R>*", sequence++, 0x0B01, ext,
                         partner_name,
                         partner_name_2,
@@ -610,7 +610,7 @@ var epson_e_ar = function(interface, sequence) {
     //
     // subtotal = Subtotal parcial del tique-factura o tique-nota de débito.
     //
-    this._item_fiscal_ticket = function(
+    this._item_ticket_factura = function(
             item_action,
             as_gross,
             send_subtotal,
@@ -646,7 +646,7 @@ var epson_e_ar = function(interface, sequence) {
                   (large_label                           && 0x1000) |
                   (first_line_label                      && 0x2000);
         self.common.command(
-                'item_fiscal_ticket',
+                'item_ticket_factura',
                 self.common.pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0B02, ext,
                         description,
                         description_2,
@@ -681,7 +681,7 @@ var epson_e_ar = function(interface, sequence) {
     // gross = Subtotal parcial del tique-factura o nota de débito ( bruto )
     // net = Subtotal parcial del tique-factura o nota de débito ( neto )
     //
-    this._subtotal_fiscal_ticket = function(
+    this._subtotal_ticket_factura = function(
             print,
             type,
             callback) {
@@ -690,8 +690,8 @@ var epson_e_ar = function(interface, sequence) {
                   (type == 'net'   && 0x0008) |
                   (type == 'both'  && 0x000A);
         self.common.command(
-                'subtotal_fiscal_ticket',
-                self.common.pack("<SW_W>*", sequence++, 0x0B03, ext),
+                'subtotal_ticket_factura',
+                self.common.pack("<SW_W>*", sequence++, 0x0D03, ext),
                 '<SW_W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'gross',
@@ -714,13 +714,13 @@ var epson_e_ar = function(interface, sequence) {
     //
     // subtotal = Subtotal parcial del tique-factura o nota de débito.
     //
-    this._discount_charge_fiscal_ticket = function(
+    this._discount_charge_ticket_factura = function(
             type,
             callback) {
         var ext = (type == 'discount' && 0x0000) |
                   (type == 'charge'   && 0x0001);
         self.common.command(
-                'discount_charge_fiscal_ticket',
+                'discount_charge_ticket_factura',
                 self.common.pack("<SW_W_R_NA2>*", sequence++, 0x0B04, ext,
                     description,
                     amount),
@@ -750,7 +750,7 @@ var epson_e_ar = function(interface, sequence) {
     // result = Monto restante por pagar
     // change = Monto de vuelto
     //
-    this._pay_fiscal_ticket = function(
+    this._pay_ticket_factura = function(
             type,
             extra_description,
             description,
@@ -760,7 +760,7 @@ var epson_e_ar = function(interface, sequence) {
                   (type == 'no_include_cash_count'   && 0x0002) |
                   (type == 'card_pay'                && 0x0004);
         self.common.command(
-                'pay_fiscal_ticket',
+                'pay_ticket_factura',
                 self.common.pack("<SW_W_R_R_NA2>*", sequence++, 0x0B05, ext,
                     extra_description,
                     description,
@@ -801,7 +801,7 @@ var epson_e_ar = function(interface, sequence) {
     // document_vat = Monto total de IVA del tique-factura o nota de débito fiscal
     // document_return = Vuelto final
     //
-    this._close_fiscal_ticket = function(
+    this._close_ticket_factura = function(
             cut_paper,
             electronic_answer,
             print_return_attribute,
@@ -820,7 +820,7 @@ var epson_e_ar = function(interface, sequence) {
                   (current_account_automatic_pay         && 0x0010) |
                   (print_quantities                      && 0x0100);
         self.common.command(
-                'close_fiscal_ticket',
+                'close_ticket_factura',
                 self.common.pack("<SW_W_N30_R_N30_R_N30_R>*", sequence++, 0x0B06, ext,
                         tail_no,
                         tail_text,
@@ -850,9 +850,9 @@ var epson_e_ar = function(interface, sequence) {
     // document_number = Número del tique factura o nota de débito.
     // document_type = Tipo de tique-factura o nota de débito (‘A’, ‘B’, ‘C’)
     //
-    this._cancel_fiscal_ticket = function(callback) {
+    this._cancel_ticket_factura = function(callback) {
         self.common.command(
-                'cancel_fiscal_ticket',
+                'cancel_ticket_factura',
                 self.common.pack("<SW_W>*", sequence++, 0x0B07, 0x0000),
                 '<SW_W__R__N_L>*',
                 ['printerStatus', 'fiscalStatus', 'result',
@@ -860,6 +860,17 @@ var epson_e_ar = function(interface, sequence) {
                  'document_type'],
                 self.command_callback(callback));
     }
+
+    // 6.7.8 Configurar Preferencias (0B 08)
+    // 6.7.9 Obtener Configuración de Preferencias (0B 09)
+    // 6.7.10 Información (0B 0A)
+    // 6.7.11 Información de IVA (0B 0B)
+    // 6.7.12 Información de Pagos (0B 0C)
+    // 6.7.13 Información de Ventas (0B 0D)
+    // 6.7.14 Información de Impuestos Internos (0B 0E)
+    // 6.7.15 Información de Percepciones (0B 0F)
+    // 6.7.16 Información de última respuesta (0B 10)
+    // 6.7.17 Percepciones (0B 20)
 
     //
     // 6.8 Comandos de Tique-Nota de Crédito (0D)
@@ -897,7 +908,7 @@ var epson_e_ar = function(interface, sequence) {
     // related_document = Línea de Remitos Asociados #1
     // related_document_2 = Línea de Remitos Asociados #2
     //
-    this._open_fiscal_ticket_nc = function(
+    this._open_ticket_notacredito = function(
             triplicated,
             partner_name,
             partner_name_2,
@@ -909,12 +920,13 @@ var epson_e_ar = function(interface, sequence) {
             partner_responsability,
             related_document,
             related_document_2,
+            origin_document,
             callback) {
-        var ext = (triplicated           && 0x0002);
+        var ext = (triplicated           && 0x0002) || 0;
 
         self.common.command(
-                'open_fiscal_ticket',
-                self.common.pack("<SW_W_R_R_R_R_R_L_A_L_R_R>*", sequence++, 0x0D01, ext,
+                'open_ticket_notacredito',
+                self.common.pack("<SW_W_R_R_R_R_R_L_A_L_R_R_R>*", sequence++, 0x0D01, ext,
                         partner_name,
                         partner_name_2,
                         partner_address,
@@ -924,6 +936,7 @@ var epson_e_ar = function(interface, sequence) {
                         partner_document_number,
                         partner_responsability,
                         related_document,
+                        origin_document,
                         related_document_2),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
@@ -968,7 +981,7 @@ var epson_e_ar = function(interface, sequence) {
     //
     // subtotal = Subtotal parcial del tique-factura o tique-nota de débito.
     //
-    this._item_fiscal_ticket_nc = function(
+    this._item_ticket_notacredito = function(
             item_action,
             as_gross,
             send_subtotal,
@@ -1004,7 +1017,7 @@ var epson_e_ar = function(interface, sequence) {
                   (large_label                           && 0x1000) |
                   (first_line_label                      && 0x2000);
         self.common.command(
-                'item_fiscal_ticket',
+                'item_ticket_notacredito',
                 self.common.pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0D02, ext,
                         description,
                         description_2,
@@ -1023,11 +1036,199 @@ var epson_e_ar = function(interface, sequence) {
     }
 
     // 6.8.3 Subtotal (0D 03)
+    //
+    // Retorna el subtotal facturado dentro del tique-nota de crédito fiscal.
+    //
+    // INPUT
+    //
+    // no_print = No imprime el subtotal.
+    // type = gross: Solo devuelve el campo de total bruto
+    //        net:   Solo devuelve el campo de total neto
+    //        both:  Devuelve ambos totales
+    //        none:  No devuelve nada
+    //
+    // OUTPUT
+    //
+    // gross = Subtotal parcial del tique-nota de crédito ( bruto )
+    // net = Subtotal parcial del tique-nota de crédito ( neto )
+    //
+    this._subtotal_ticket_notacredito = function(
+            print,
+            type,
+            callback) {
+        var ext = (no_print        && 0x0001) |
+                  (type == 'gross' && 0x0004) |
+                  (type == 'net'   && 0x0008) |
+                  (type == 'both'  && 0x000A);
+        self.common.command(
+                'subtotal_ticket_notacredito',
+                self.common.pack("<SW_W>*", sequence++, 0x0D03, ext),
+                '<SW_W__N_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'gross',
+                 'net'],
+                self.command_callback(callback));
+    }
+
     // 6.8.4 Descuentos/Recargos (0D 04)
-    // VConfidencial
+    //
+    // Aplica un descuento o recargo global a los montos facturados en el tique-nota de crédito fiscal.
+    //
+    // INPUT
+    //
+    // type = discount: Descuento
+    //        charge: recargo
+    // description = Descripción
+    // amount = Monto de descuento/recargo
+    //
+    // OUTPUT
+    //
+    // subtotal = Subtotal parcial del tique-nota de crédito.
+    //
+    this._discount_charge_ticket_notacredito = function(
+            type,
+            callback) {
+        var ext = (type == 'discount' && 0x0000) |
+                  (type == 'charge'   && 0x0001);
+        self.common.command(
+                'discount_charge_ticket_notacredito',
+                self.common.pack("<SW_W_R_NA2>*", sequence++, 0x0D04, ext,
+                    description,
+                    amount),
+                '<SW_W__N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'subtotal'],
+                self.command_callback(callback));
+    }
+
     // 6.8.5 Pagos (0D 05)
+    //
+    // Aplica un pago al tique-nota de crédito fiscal en proceso de emisión.
+    //
+    // INPUT
+    //
+    // Aplica un pago al tique-nota de crédito fiscal en proceso de emisión.
+    // type =
+    //   null_pay = Anulación de pago.
+    //   no_include_cash_count = No incluye pago en arqueo de pagos.
+    //   card_pay = Pago con tarjeta.
+    // extra_description = Descripción extra del pago
+    // description = Descripción del pago
+    // amount = Monto de pago
+    //
+    // RETURN
+    //
+    // result = Monto restante por pagar
+    // change = Monto de vuelto
+    //
+    this._pay_ticket_notacredito = function(
+            type,
+            extra_description,
+            description,
+            amount,
+            callback) {
+        var ext = (type == 'null_pay'                && 0x0001) |
+                  (type == 'no_include_cash_count'   && 0x0002) |
+                  (type == 'card_pay'                && 0x0004);
+        self.common.command(
+                'pay_ticket_notacredito',
+                self.common.pack("<SW_W_R_R_NA2>*", sequence++, 0x0D05, ext,
+                    extra_description,
+                    description,
+                    amount),
+                '<SW_W__N_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'result',
+                 'change'],
+                self.command_callback(callback));
+    }
+
     // 6.8.6 Cerrar (0D 06)
+    //
+    // Realiza el cierre del tique-nota de crédito fiscal almacenando los datos de la transacción en la memoria de transacciones.
+    //
+    // INPUT
+    //
+    // cut_paper = Cortar papel.
+    // electronic_answer = Devuelve respuesta electrónica.
+    // print_return_attribute = Imprime “Su Vuelto” con atributos.
+    // current_account_automatic_pay = Utiliza pago automático como cuenta corriente.
+    // print_quantities = Imprimir Cantidad de unidades.
+    // tail_no = Número de línea de cola de reemplazo #1
+    // tail_text = Descripción de reemplazo #1
+    // tail_no_2 = Número de línea de cola de reemplazo #2
+    // tail_text_2 = Descripción de reemplazo #2
+    // tail_no_3 = Número de línea de cola de reemplazo #3
+    // tail_text_3 = Descripción de reemplazo #3
+    //
+    // RETURN
+    //
+    // printerStatus = estado de la impresora.
+    // fiscalStatus = estado fiscal del equipo.
+    // result = resultado del comando.
+    // document_number = Número del tique-nota de crédito fiscal
+    // document_type = Tipo de tique-nota de crédito (‘A’, ‘B’, ‘C’)
+    // document_amount = Monto total del tique-nota de crédito fiscal
+    // document_vat = Monto total de IVA del tique-nota de crédito fiscal
+    // document_return = Vuelto final
+    //
+    this._close_ticket_notacredito = function(
+            cut_paper,
+            electronic_answer,
+            print_quantities,
+            tail_no,
+            tail_text,
+            tail_no_2,
+            tail_text_2,
+            tail_no_3,
+            tail_text_3,
+            sign_no,
+            callback) {
+        var ext = (cut_paper                             && 0x0001) |
+                  (electronic_answer                     && 0x0002) |
+                  (print_quantities                      && 0x0100);
+        self.common.command(
+                'close_ticket_notacredito',
+                self.common.pack("<SW_W_N30_R_N30_R_N30_R_N30>*", sequence++, 0x0D06, ext,
+                        tail_no,
+                        tail_text,
+                        tail_no_2,
+                        tail_text_2,
+                        tail_no_3,
+                        tail_text_3,
+                        sign_no),
+                '<SW_W__W__N_L_N_N_N>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'document_number',
+                 'document_type',
+                 'document_amount',
+                 'document_vat',
+                 'document_return'],
+                self.command_callback(callback));
+    }
+
     // 6.8.7 Cancelar (0D 07)
+    //
+    // Realiza la cancelación del tique-nota de crédito fiscal.
+    //
+    // INPUT
+    //
+    // RETURN
+    //
+    // document_number = Número del tique nota de crédito.
+    // document_type = Tipo de tique-nota de crédito (‘A’, ‘B’, ‘C’)
+    //
+    this._cancel_ticket_notacredito = function(callback) {
+        self.common.command(
+                'cancel_ticket_notacredito',
+                self.common.pack("<SW_W>*", sequence++, 0x0D07, 0x0000),
+                '<SW_W__R__N_L>*',
+                ['printerStatus', 'fiscalStatus', 'result',
+                 'document_number',
+                 'document_type'],
+                self.command_callback(callback));
+    }
+
     // 6.8.8 Configurar Preferencias (0D 08)
     // 6.8.9 Obtener Configuración de Preferencias (0D 09)
     // 6.8.10 Información (0D 0A)
@@ -1322,17 +1523,17 @@ var epson_e_ar = function(interface, sequence) {
         self._x_report(1,1,1,callback);
     }
 
-    // API: Make ticket.
-    this.make_fiscal_ticket  = function(options, ticket, callback) {
+    // API: Make ticket factura.
+    this.make_ticket_factura  = function(options, ticket, callback) {
         var self = this;
 
-        var cancel_fiscal_ticket = function(ret) {
+        var cancel_ticket_factura = function(ret) {
             ret = ret || {};
             ret.error = 'ticket canceled'
             callback(ret);
         }
 
-        self._open_fiscal_ticket(
+        self._open_ticket_factura(
 			    options.triplicated || false,
 			    options.store_description || false,
 			    options.keep_description_attributes || false,
@@ -1357,7 +1558,7 @@ var epson_e_ar = function(interface, sequence) {
         } else
         async.eachSeries(ticket.lines || [],
             function(line, _callback_){
-            self._item_fiscal_ticket(
+            self._item_ticket_factura(
                     line.item_action || "sale_item",
                     line.as_gross || false,
                     line.send_subtotal || false,
@@ -1378,7 +1579,7 @@ var epson_e_ar = function(interface, sequence) {
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_fiscal_ticket(cancel_fiscal_ticket);
+                            self._cancel_ticket_factura(cancel_ticket_factura);
                         } else {
                             _callback_();
                         }
@@ -1387,7 +1588,7 @@ var epson_e_ar = function(interface, sequence) {
             }, function() {
         async.eachSeries(ticket.payments || [],
             function(pay, _callback_){
-            self._pay_fiscal_ticket(
+            self._pay_ticket_factura(
                     pay.type,
                     pay.extra_description,
                     pay.description,
@@ -1395,14 +1596,14 @@ var epson_e_ar = function(interface, sequence) {
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_fiscal_ticket(callback_fiscal_ticket);
+                            self._cancel_ticket_factura(callback_ticket_factura);
                         } else {
                             _callback_();
                         }
                     }
                 );
             }, function() {
-            self._close_fiscal_ticket(
+            self._close_ticket_factura(
                     options.cut_paper || true,
                     options.electronic_answer || true,
                     options.print_return_attribute || false,
@@ -1417,7 +1618,7 @@ var epson_e_ar = function(interface, sequence) {
             function(res) {
             if (res.result != 0) {
                 console.error(res.strResult);
-                self._cancel_fiscal_ticket(cancel_fiscal_ticket);
+                self._cancel_ticket_factura(cancel_ticket_factura);
             } else {
                 callback(res);
             }
@@ -1427,11 +1628,118 @@ var epson_e_ar = function(interface, sequence) {
 	    });
     };
 
-    // API: Cancel ticket.
-    this.cancel_fiscal_ticket  = function(callback) {
+    // API: Cancel ticket factura.
+    this.cancel_ticket_factura  = function(callback) {
         var self = this;
-        self._cancel_fiscal_ticket(callback);
+        self._cancel_ticket_factura(callback);
     };
+
+    // API: Make ticket nota de crédito.
+    this.make_ticket_notacredito  = function(options, ticket, callback) {
+        var self = this;
+
+        var cancel_ticket_notacredito = function(ret) {
+            ret = ret || {};
+            ret.error = 'ticket canceled'
+            callback(ret);
+        }
+
+        self._open_ticket_notacredito(
+			    options.triplicated || false,
+			    ticket.partner.name,
+			    ticket.partner.name_2 || "",
+			    ticket.partner.address,
+			    ticket.partner.address_2 || "",
+			    ticket.partner.address_3 || "",
+			    ticket.partner.document_type,
+			    ticket.partner.document_number,
+			    ticket.partner.responsability,
+			    ticket.related_document || "",
+			    ticket.related_document_2 || "",
+			    ticket.origin_document,
+	    function(res) {
+        if (res.result != 0) {
+            console.error(res.strResult);
+            callback({'error': 'Cant open ticket:' + res.strResult});
+        } else
+        async.eachSeries(ticket.lines || [],
+            function(line, _callback_){
+            self._item_ticket_notacredito(
+                    line.item_action || "sale_item",
+                    line.as_gross || false,
+                    line.send_subtotal || false,
+                    line.check_item || false,
+                    line.collect_type || 'q',
+                    line.large_label || "",
+                    line.firt_line_label || "",
+                    line.description || "",
+                    line.description_2 || "",
+                    line.description_3 || "",
+                    line.description_4 || "",
+                    line.item_description,
+                    line.quantity || 1,
+                    line.unit_price,
+                    line.vat_rate || 0,
+                    line.fixed_taxes || 0,
+                    line.taxes_rate || 0,
+                    function(res) {
+                        if (res.result != 0) {
+                            console.error(res.strResult);
+                            self._cancel_ticket_notacredito(cancel_ticket_notacredito);
+                        } else {
+                            _callback_();
+                        }
+                    }
+                );
+            }, function() {
+        async.eachSeries(ticket.payments || [],
+            function(pay, _callback_){
+            self._pay_ticket_notacredito(
+                    pay.type,
+                    pay.extra_description,
+                    pay.description,
+                    pay.amount,
+                    function(res) {
+                        if (res.result != 0) {
+                            console.error(res.strResult);
+                            self._cancel_ticket_notacredito(callback_ticket_notacredito);
+                        } else {
+                            _callback_();
+                        }
+                    }
+                );
+            }, function() {
+            self._close_ticket_notacredito(
+                    options.cut_paper || true,
+                    options.electronic_answer || true,
+                    options.print_return_attribute || false,
+                    options.current_account_automatic_pay || false,
+                    options.print_quantities || false,
+                    options.tail_no || 0,
+                    options.tail_text || "",
+                    options.tail_no_2 || 0,
+                    options.tail_text_2 || "",
+                    options.tail_no_3 || 0,
+                    options.tail_text_3 || "",
+            function(res) {
+            if (res.result != 0) {
+                console.error(res.strResult);
+                self._cancel_ticket_notacredito(cancel_ticket_notacredito);
+            } else {
+                callback(res);
+            }
+            });
+	    });
+	    });
+	    });
+    };
+
+    // API: Cancel ticket nota de crédito.
+    this.cancel_ticket_notacredito  = function(callback) {
+        var self = this;
+        self._cancel_ticket_notacredito(callback);
+    };
+
 };
 
 function epson_e_ar_open(device, port, callback) {

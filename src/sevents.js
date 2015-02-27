@@ -164,12 +164,12 @@ printer_server_events = {
             });
         }
     },
-    'cancel_fiscal_ticket': function(session, event_id, event_data, printers, callback) {
-        console.debug("[EVENT] Cancel fiscal ticket.");
+    'cancel_ticket_factura': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Cancel ticket factura.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
-            printer.cancel_fiscal_ticket(function(res){
+            printer.cancel_ticket_factura(function(res){
                 response = res || {};
                 response['event_id'] = event_id;
                 response['printer_id'] = printer_id;
@@ -177,12 +177,41 @@ printer_server_events = {
             });
         }
     },
-    'make_fiscal_ticket': function(session, event_id, event_data, printers, callback) {
-        console.debug("[EVENT] Make fiscal ticket.");
+    'make_ticket_factura': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Make ticket factura.");
         var printer_id = event_data.name;
         if (typeof printers == 'object' && printer_id in printers) {
             var printer = printers[printer_id];
-            printer.make_fiscal_ticket(
+            printer.make_ticket_factura(
+                    event_data['options'],
+                    event_data['ticket'],
+                    function(res){
+                        response = res || {'error': 'no answer'};
+                        response['event_id'] = event_id;
+                        response['printer_id'] = printer_id;
+                        session.send(response,callback);
+                    });
+        }
+    },
+    'cancel_ticket_notacredito': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Cancel ticket nota de crédito.");
+        var printer_id = event_data.name;
+        if (typeof printers == 'object' && printer_id in printers) {
+            var printer = printers[printer_id];
+            printer.cancel_ticket_notacredito(function(res){
+                response = res || {};
+                response['event_id'] = event_id;
+                response['printer_id'] = printer_id;
+                session.send(response,callback);
+            });
+        }
+    },
+    'make_ticket_notacredito': function(session, event_id, event_data, printers, callback) {
+        console.debug("[EVENT] Make ticket nota de crédito.");
+        var printer_id = event_data.name;
+        if (typeof printers == 'object' && printer_id in printers) {
+            var printer = printers[printer_id];
+            printer.make_ticket_notacredito(
                     event_data['options'],
                     event_data['ticket'],
                     function(res){
