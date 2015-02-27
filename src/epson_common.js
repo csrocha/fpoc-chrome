@@ -175,8 +175,8 @@ var epson_common = function(interface, sequence_start, sequence_size) {
         var l = 0;
         var v = new DataView(data);
         for (var i=0; i < types.length; i++) {
-          Win = ['W'].indexOf(types[i]);
-        if (Win == 8) { // Captura el error si hay y termina de parsear.
+        Win = ['W'].indexOf(types[i]);
+        if (Win >= 0 && fields[f] == 'result') { // Captura el error si hay y termina de parsear.
             var nb = self.bufUnescape(data.slice(l, l+4));
             var nv = new DataView(nb);
             var ret = nv.getUint16(0, false);

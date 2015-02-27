@@ -854,7 +854,7 @@ var epson_e_ar = function(interface, sequence) {
         self.common.command(
                 'cancel_ticket_factura',
                 self.common.pack("<SW_W>*", sequence++, 0x0B07, 0x0000),
-                '<SW_W__R__N_L>*',
+                '<SW_W__W__N_L>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'document_number',
                  'document_type'],
@@ -907,6 +907,7 @@ var epson_e_ar = function(interface, sequence) {
     //                           P: Monotributista trabajador independiente promovido.
     // related_document = Línea de Remitos Asociados #1
     // related_document_2 = Línea de Remitos Asociados #2
+    // origin_document = Línea de Comprobante de Origen
     //
     this._open_ticket_notacredito = function(
             triplicated,
@@ -936,8 +937,8 @@ var epson_e_ar = function(interface, sequence) {
                         partner_document_number,
                         partner_responsability,
                         related_document,
-                        origin_document,
-                        related_document_2),
+                        related_document_2,
+                        origin_document),
                 '<SW_W__W_>*',
                 ['printerStatus', 'fiscalStatus', 'result'],
                 self.command_callback(callback));
@@ -960,7 +961,6 @@ var epson_e_ar = function(interface, sequence) {
     //               cancel_discount_item: Anulación de ítem de descuento.
     // as_gross = Considerar parámetros como montos Brutos.
     // send_subtotal = Envía campo Subtotal parcial del tique.
-    // check_item = Marcar ítem.
     // collect_type = q: Contabilizar ítem de venta igual a la cantidad Q.
     //                unit: Contabilizar ítem de venta como cantidad unitaria (bulto).
     //                none: No contabilizar ítem de venta en cantidad de unidades.
@@ -985,7 +985,6 @@ var epson_e_ar = function(interface, sequence) {
             item_action,
             as_gross,
             send_subtotal,
-            check_item,
             collect_type,
             large_label,
             first_line_label,
@@ -1010,15 +1009,19 @@ var epson_e_ar = function(interface, sequence) {
                   (item_action == 'cancel_discount_item' && 0x0007) |
                   (as_gross                              && 0x0008) |
                   (send_subtotal                         && 0x0010) |
-                  (check_item                            && 0x0020) |
                   (collect_type == 'q'                   && 0x0000) |
                   (collect_type == 'unit'                && 0x0040) |
                   (collect_type == 'none'                && 0x0080) |
                   (large_label                           && 0x1000) |
                   (first_line_label                      && 0x2000);
+        command = "<SW_W_R_R_R_R_R_N54_N74_N22_"
+        command = command + (fixed_taxes > 0. && "N74" || "_");
+        command = command + (taxes_rate > 0. && "N08" || "");
+        command = command + ">*";
+        tax_value = (fixed_taxes > 0. && fixed_taxes || taxes_rate);
         self.common.command(
                 'item_ticket_notacredito',
-                self.common.pack("<SW_W_R_R_R_R_R_N54_N74_N22_N74_N08>*", sequence++, 0x0D02, ext,
+                self.common.pack(command, sequence++, 0x0D02, ext,
                         description,
                         description_2,
                         description_3,
@@ -1027,8 +1030,7 @@ var epson_e_ar = function(interface, sequence) {
                         quantity,
                         unit_price,
                         vat_rate,
-                        fixed_taxes,
-                        taxes_rate),
+                        tax_value),
                 '<SW_W__W_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'subtotal'],
@@ -1189,7 +1191,7 @@ var epson_e_ar = function(interface, sequence) {
                   (print_quantities                      && 0x0100);
         self.common.command(
                 'close_ticket_notacredito',
-                self.common.pack("<SW_W_N30_R_N30_R_N30_R_N30>*", sequence++, 0x0D06, ext,
+                self.common.pack("<SW_W_N30_R_N30_R_N30_R_N10>*", sequence++, 0x0D06, ext,
                         tail_no,
                         tail_text,
                         tail_no_2,
@@ -1222,7 +1224,7 @@ var epson_e_ar = function(interface, sequence) {
         self.common.command(
                 'cancel_ticket_notacredito',
                 self.common.pack("<SW_W>*", sequence++, 0x0D07, 0x0000),
-                '<SW_W__R__N_L>*',
+                '<SW_W__W__N_L>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'document_number',
                  'document_type'],
