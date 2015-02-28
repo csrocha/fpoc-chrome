@@ -461,7 +461,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.command_callback(callback));
     }
 
-    // 
+    //
     // Comandos de Tique Fiscal (0A)
     //
     // 6.6.1 Abrir (0A 01)
@@ -689,7 +689,7 @@ var epson_e_ar = function(interface, sequence) {
                   (type == 'gross' && 0x0000) |
                   (type == 'net'   && 0x0004) |
                   (type == 'both'  && 0x0008) |
-                  (type == 'none'  && 0x000C) 
+                  (type == 'none'  && 0x000C)
                   ;
         self.common.command(
                 'subtotal_ticket_factura',
@@ -718,6 +718,8 @@ var epson_e_ar = function(interface, sequence) {
     //
     this._discount_charge_ticket_factura = function(
             type,
+            description,
+            amount,
             callback) {
         var ext = (type == 'discount' && 0x0000) |
                   (type == 'charge'   && 0x0001);
@@ -753,14 +755,16 @@ var epson_e_ar = function(interface, sequence) {
     // change = Monto de vuelto
     //
     this._pay_ticket_factura = function(
-            type,
+            null_pay,
+            include_in_arching,
+            card_pay,
             extra_description,
             description,
             amount,
             callback) {
-        var ext = (type == 'null_pay'                && 0x0001) |
-                  (type == 'no_include_cash_count'   && 0x0002) |
-                  (type == 'card_pay'                && 0x0004);
+        var ext = (null_pay             && 0x0001) |
+                  (include_in_arching   && 0x0002) |
+                  (card_pay             && 0x0004);
         self.common.command(
                 'pay_ticket_factura',
                 self.common.pack("<SW_W_R_R_NA2>*", sequence++, 0x0B05, ext,
@@ -769,7 +773,7 @@ var epson_e_ar = function(interface, sequence) {
                     amount),
                 '<SW_W__W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
-                 'result',
+                 'return',
                  'change'],
                 self.command_callback(callback));
     }
@@ -1064,7 +1068,7 @@ var epson_e_ar = function(interface, sequence) {
                   (type == 'gross' && 0x0000) |
                   (type == 'net'   && 0x0004) |
                   (type == 'both'  && 0x0008) |
-                  (type == 'none'  && 0x000C) 
+                  (type == 'none'  && 0x000C);
         self.common.command(
                 'subtotal_ticket_notacredito',
                 self.common.pack("<SW_W>*", sequence++, 0x0D03, ext),
@@ -1092,6 +1096,8 @@ var epson_e_ar = function(interface, sequence) {
     //
     this._discount_charge_ticket_notacredito = function(
             type,
+            description,
+            amount,
             callback) {
         var ext = (type == 'discount' && 0x0000) |
                   (type == 'charge'   && 0x0001);
@@ -1100,7 +1106,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_R_NA2>*", sequence++, 0x0D04, ext,
                     description,
                     amount),
-                '<SW_W__W_N>*',
+                '<SW_W__W__N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'subtotal'],
                 self.command_callback(callback));
@@ -1144,7 +1150,7 @@ var epson_e_ar = function(interface, sequence) {
                     amount),
                 '<SW_W__W_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
-                 'result',
+                 'return',
                  'change'],
                 self.command_callback(callback));
     }
@@ -1246,7 +1252,7 @@ var epson_e_ar = function(interface, sequence) {
     // 6.8.16 Información de última respuesta (0D 10)
     // 6.8.17 Percepciones (0D 20)
     //
-    
+
 
     //
     // Wrapper fields
@@ -1592,10 +1598,28 @@ var epson_e_ar = function(interface, sequence) {
                     }
                 );
             }, function() {
+        async.eachSeries(ticket.discounts || [],
+            function(discount, _callback_){
+            self._discount_charge_ticket_factura(
+                    discount.type,
+                    discount.description,
+                    discount.amount,
+                    function(res) {
+                        if (res.result != 0) {
+                            console.error(res.strResult);
+                            self._cancel_ticket_factura(callback_ticket_factura);
+                        } else {
+                            _callback_();
+                        }
+                    }
+                );
+            }, function() {
         async.eachSeries(ticket.payments || [],
             function(pay, _callback_){
             self._pay_ticket_factura(
-                    pay.type,
+                    pay.null_pay,
+                    pay.include_in_arching,
+                    pay.card_pay,
                     pay.extra_description,
                     pay.description,
                     pay.amount,
@@ -1629,6 +1653,7 @@ var epson_e_ar = function(interface, sequence) {
                 callback(res);
             }
             });
+	    });
 	    });
 	    });
 	    });
@@ -1674,7 +1699,6 @@ var epson_e_ar = function(interface, sequence) {
                     line.item_action || "sale_item",
                     line.as_gross || false,
                     line.send_subtotal || false,
-                    line.check_item || false,
                     line.collect_type || 'q',
                     line.large_label || "",
                     line.firt_line_label || "",
@@ -1698,10 +1722,27 @@ var epson_e_ar = function(interface, sequence) {
                     }
                 );
             }, function() {
+        async.eachSeries(ticket.discounts || [],
+            function(discount, _callback_){
+            self._discount_charge_ticket_notacredito(
+                    discount.type,
+                    discount.description,
+                    discount.amount,
+                    function(res) {
+                        if (res.result != 0) {
+                            console.error(res.strResult);
+                            self._cancel_ticket_notacredito(callback_ticket_factura);
+                        } else {
+                            _callback_();
+                        }
+                    }
+                );
+            }, function() {
         async.eachSeries(ticket.payments || [],
             function(pay, _callback_){
             self._pay_ticket_notacredito(
-                    pay.type,
+                    pay.null_pay || false,
+                    pay.card_pay || false,
                     pay.extra_description,
                     pay.description,
                     pay.amount,
@@ -1718,8 +1759,6 @@ var epson_e_ar = function(interface, sequence) {
             self._close_ticket_notacredito(
                     options.cut_paper || true,
                     options.electronic_answer || true,
-                    options.print_return_attribute || false,
-                    options.current_account_automatic_pay || false,
                     options.print_quantities || false,
                     options.tail_no || 0,
                     options.tail_text || "",
@@ -1727,6 +1766,7 @@ var epson_e_ar = function(interface, sequence) {
                     options.tail_text_2 || "",
                     options.tail_no_3 || 0,
                     options.tail_text_3 || "",
+                    options.sign_no || 3,
             function(res) {
             if (res.result != 0) {
                 console.error(res.strResult);
@@ -1735,6 +1775,7 @@ var epson_e_ar = function(interface, sequence) {
                 callback(res);
             }
             });
+	    });
 	    });
 	    });
 	    });

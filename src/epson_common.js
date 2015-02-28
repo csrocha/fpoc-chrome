@@ -238,7 +238,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                     var dv = new DataView(info.data);
                     if (info.data.byteLength==0) {
                         self.waitResponse(command, types, fields, callback);
-                    } else 
+                    } else
                     if (info.data.byteLength==1 && dv.getUint8(0) == 0x15) {
                         console.error("USB-NACK");
                         self.sendACK(self.waitResponse.bind(self, command, types, fields, callback));
@@ -248,7 +248,7 @@ var epson_common = function(interface, sequence_start, sequence_size) {
                     } else
                     if (info.data.byteLength==1 && dv.getUint8(0) == 0x06) {
                         self.sendACK(self.waitResponse.bind(self, command, types, fields, callback));
-                    } else 
+                    } else
                     if (info.data.byteLength>1 && dv.getUint8(1) == 0x80) {
                         self.sendACK(function(res){
                             self.waitResponse(command, types, fields, callback);
@@ -285,7 +285,11 @@ var epson_common = function(interface, sequence_start, sequence_size) {
         }
 
         var local_callback = function(response) {
-            self.busy--;
+            if (self.busy == 0) {
+                console.log("No reserved call???", self.busy);
+            } else {
+                self.busy--;
+            };
             if (response) {
                 response.command = name;
             }

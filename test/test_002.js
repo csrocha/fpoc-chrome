@@ -2,7 +2,7 @@
 
 function test_002_001() {
     test_start("002_001");
-   
+
     function end() {
         test_end("002_001");
     };
@@ -85,7 +85,7 @@ function test_002_001() {
 
 function test_002_002() {
     test_start("002_002");
-   
+
     function end() {
         test_end("002_002");
     };
@@ -144,7 +144,7 @@ function test_002_002() {
 
 function test_002_003() {
     test_start("002_003");
-   
+
     function end() {
         test_end("002_003");
     };
@@ -215,6 +215,30 @@ function test_002_003() {
                 taxes_rate: 0,
                 },
             ],
+            discounts: [ {
+                type: 'discount',
+                description: 'Descuento por iglesia',
+                amount: 5,
+            }, {
+                type: 'charge',
+                description: 'Recarga por tarjeta de credito',
+                amount: 10,
+            } ],
+            payments: [ {
+                null_pay: false,
+                include_in_arching: false,
+                card_pay: true,
+                extra_description: '3 pagos',
+                description: 'VISA',
+                amount: 100,
+            }, {
+                null_pay: false,
+                include_pay_in_arching: false,
+                card_pay: false,
+                extra_description: '-',
+                description: 'Efectivo',
+                amount: 100,
+            }],
             cut_paper: true,
             electronic_answer: false,
             print_return_attribute: false,
@@ -227,8 +251,8 @@ function test_002_003() {
             tail_no_3: 0,
             tail_text_3: "",
         };
-           
-        t_printer.make_fiscal_ticket(options, ticket, function(res) {
+
+        t_printer.make_ticket_factura(options, ticket, function(res) {
             console.log(res);
         });
     };
@@ -239,4 +263,28 @@ function test_002_003() {
             );
 };
 
+function reset_test_002() {
+    test_start("reset_test_002");
+
+    function end() {
+        test_end("reset_test_002");
+    };
+
+
+    function t_cancel_ticket(printers, end) {
+        var t_printer = printers[takeKeys(printers)[0]]
+        t_printer._cancel_ticket_factura(
+        function(res) {
+            if (res.result != 0) {
+            console.error(res.strResult);
+            return; }
+        console.log(res);
+	});
+    };
+
+    query_local_printers(
+            function(printers) { t_cancel_ticket(printers, end); },
+            function() { console.log("Something change") }
+            );
+}
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
