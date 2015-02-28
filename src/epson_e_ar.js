@@ -658,7 +658,7 @@ var epson_e_ar = function(interface, sequence) {
                         vat_rate,
                         fixed_taxes,
                         taxes_rate),
-                '<SW_W__W_N>*',
+                '<SW_W__W__N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'subtotal'],
                 self.command_callback(callback));
@@ -682,17 +682,19 @@ var epson_e_ar = function(interface, sequence) {
     // net = Subtotal parcial del tique-factura o nota de débito ( neto )
     //
     this._subtotal_ticket_factura = function(
-            print,
+            no_print,
             type,
             callback) {
         var ext = (no_print        && 0x0001) |
-                  (type == 'gross' && 0x0004) |
-                  (type == 'net'   && 0x0008) |
-                  (type == 'both'  && 0x000A);
+                  (type == 'gross' && 0x0000) |
+                  (type == 'net'   && 0x0004) |
+                  (type == 'both'  && 0x0008) |
+                  (type == 'none'  && 0x000C) 
+                  ;
         self.common.command(
                 'subtotal_ticket_factura',
                 self.common.pack("<SW_W>*", sequence++, 0x0D03, ext),
-                '<SW_W__N_N>*',
+                '<SW_W__W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'gross',
                  'net'],
@@ -724,7 +726,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_R_NA2>*", sequence++, 0x0B04, ext,
                     description,
                     amount),
-                '<SW_W__N>*',
+                '<SW_W__W__N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'subtotal'],
                 self.command_callback(callback));
@@ -765,7 +767,7 @@ var epson_e_ar = function(interface, sequence) {
                     extra_description,
                     description,
                     amount),
-                '<SW_W__N_N>*',
+                '<SW_W__W__N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'result',
                  'change'],
@@ -1055,17 +1057,18 @@ var epson_e_ar = function(interface, sequence) {
     // net = Subtotal parcial del tique-nota de crédito ( neto )
     //
     this._subtotal_ticket_notacredito = function(
-            print,
+            no_print,
             type,
             callback) {
         var ext = (no_print        && 0x0001) |
-                  (type == 'gross' && 0x0004) |
-                  (type == 'net'   && 0x0008) |
-                  (type == 'both'  && 0x000A);
+                  (type == 'gross' && 0x0000) |
+                  (type == 'net'   && 0x0004) |
+                  (type == 'both'  && 0x0008) |
+                  (type == 'none'  && 0x000C) 
         self.common.command(
                 'subtotal_ticket_notacredito',
                 self.common.pack("<SW_W>*", sequence++, 0x0D03, ext),
-                '<SW_W__N_N>*',
+                '<SW_W__W_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'gross',
                  'net'],
@@ -1097,7 +1100,7 @@ var epson_e_ar = function(interface, sequence) {
                 self.common.pack("<SW_W_R_NA2>*", sequence++, 0x0D04, ext,
                     description,
                     amount),
-                '<SW_W__N>*',
+                '<SW_W__W_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'subtotal'],
                 self.command_callback(callback));
@@ -1111,9 +1114,10 @@ var epson_e_ar = function(interface, sequence) {
     //
     // Aplica un pago al tique-nota de crédito fiscal en proceso de emisión.
     // type =
-    //   null_pay = Anulación de pago.
-    //   no_include_cash_count = No incluye pago en arqueo de pagos.
-    //   card_pay = Pago con tarjeta.
+    //   pay: Pago.
+    //   null_pay: Anulación de pago.
+    //   no_include_cash_count: No incluye pago en arqueo de pagos.
+    //   card_pay: Pago con tarjeta.
     // extra_description = Descripción extra del pago
     // description = Descripción del pago
     // amount = Monto de pago
@@ -1124,21 +1128,21 @@ var epson_e_ar = function(interface, sequence) {
     // change = Monto de vuelto
     //
     this._pay_ticket_notacredito = function(
-            type,
+            null_pay,
+            card_pay,
             extra_description,
             description,
             amount,
             callback) {
-        var ext = (type == 'null_pay'                && 0x0001) |
-                  (type == 'no_include_cash_count'   && 0x0002) |
-                  (type == 'card_pay'                && 0x0004);
+        var ext = (null_pay && 0x0001) |
+                  (card_pay && 0x0004);
         self.common.command(
                 'pay_ticket_notacredito',
                 self.common.pack("<SW_W_R_R_NA2>*", sequence++, 0x0D05, ext,
                     extra_description,
                     description,
                     amount),
-                '<SW_W__N_N>*',
+                '<SW_W__W_N_N>*',
                 ['printerStatus', 'fiscalStatus', 'result',
                  'result',
                  'change'],
