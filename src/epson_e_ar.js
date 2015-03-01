@@ -1539,7 +1539,7 @@ var epson_e_ar = function(interface, sequence) {
     this.make_ticket_factura  = function(options, ticket, callback) {
         var self = this;
 
-        var cancel_ticket_factura = function(ret) {
+        var callback_cancel_ticket_factura = function(ret) {
             ret = ret || {};
             ret.error = 'ticket canceled'
             callback(ret);
@@ -1591,7 +1591,7 @@ var epson_e_ar = function(interface, sequence) {
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_ticket_factura(cancel_ticket_factura);
+                            self._cancel_ticket_factura(callback_cancel_ticket_factura);
                         } else {
                             _callback_();
                         }
@@ -1607,7 +1607,7 @@ var epson_e_ar = function(interface, sequence) {
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_ticket_factura(callback_ticket_factura);
+                            self._cancel_ticket_factura(callback_cancel_ticket_factura);
                         } else {
                             _callback_();
                         }
@@ -1626,7 +1626,7 @@ var epson_e_ar = function(interface, sequence) {
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_ticket_factura(callback_ticket_factura);
+                            self._cancel_ticket_factura(callback_cancel_ticket_factura);
                         } else {
                             _callback_();
                         }
@@ -1648,7 +1648,7 @@ var epson_e_ar = function(interface, sequence) {
             function(res) {
             if (res.result != 0) {
                 console.error(res.strResult);
-                self._cancel_ticket_factura(cancel_ticket_factura);
+                self._cancel_ticket_factura(callback_cancel_ticket_factura);
             } else {
                 callback(res);
             }
@@ -1669,7 +1669,7 @@ var epson_e_ar = function(interface, sequence) {
     this.make_ticket_notacredito  = function(options, ticket, callback) {
         var self = this;
 
-        var cancel_ticket_notacredito = function(ret) {
+        var callback_cancel_ticket_notacredito = function(ret) {
             ret = ret || {};
             ret.error = 'ticket canceled'
             callback(ret);
@@ -1715,7 +1715,7 @@ var epson_e_ar = function(interface, sequence) {
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_ticket_notacredito(cancel_ticket_notacredito);
+                            self._cancel_ticket_notacredito(callback_cancel_ticket_notacredito);
                         } else {
                             _callback_();
                         }
@@ -1731,7 +1731,7 @@ var epson_e_ar = function(interface, sequence) {
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_ticket_notacredito(callback_ticket_factura);
+                            self._cancel_ticket_notacredito(callback_cancel_ticket_notacredito);
                         } else {
                             _callback_();
                         }
@@ -1743,13 +1743,13 @@ var epson_e_ar = function(interface, sequence) {
             self._pay_ticket_notacredito(
                     pay.null_pay || false,
                     pay.card_pay || false,
-                    pay.extra_description,
+                    pay.extra_description || "",
                     pay.description,
                     pay.amount,
                     function(res) {
                         if (res.result != 0) {
                             console.error(res.strResult);
-                            self._cancel_ticket_notacredito(callback_ticket_notacredito);
+                            self._cancel_ticket_notacredito(callback_cancel_ticket_notacredito);
                         } else {
                             _callback_();
                         }
@@ -1770,7 +1770,7 @@ var epson_e_ar = function(interface, sequence) {
             function(res) {
             if (res.result != 0) {
                 console.error(res.strResult);
-                self._cancel_ticket_notacredito(cancel_ticket_notacredito);
+                self._cancel_ticket_notacredito(callback_cancel_ticket_notacredito);
             } else {
                 callback(res);
             }
