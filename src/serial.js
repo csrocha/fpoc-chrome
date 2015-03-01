@@ -35,18 +35,28 @@ var serial = function(device) {
         var self = this;
         var callback = callback;
         chrome.serial.connect(device.path, {},
-                function(connInfo) {
-                  if (connInfo) {
+            function(connInfo) {
+                if (chrome.runtime.lastError) {
+                    console.error("[SERIAL]", chrome.runtime.lastError.message)
+                    return callback();
+                };
+                if (connInfo) {
                     connection = connInfo;
                     callback(self);
-                  } else {
+                } else {
                     callback();
-                  }
-                });
+                };
+            });
     };
 
     this.close = function(callback) {
-        chrome.serial.disconnect(connection.connectionId, callback);
+        chrome.serial.disconnect(connection.connectionId, function(res) {
+            if (chrome.runtime.lastError) {
+                console.error("[SERIAL]", chrome.runtime.lastError.message)
+                return callback(res);
+            };
+            callback(res);
+        });
     };
 
     this.send = function(data, callback) {
@@ -56,6 +66,11 @@ var serial = function(device) {
         bufferRef = 0;
         chrome.serial.send(connection.connectionId, data,
                 function(res) {
+                    if (chrome.runtime.lastError) {
+                        console.error("[SERIAL]", chrome.runtime.lastError.message)
+                        res.resultCode = -1;
+                        callback(res);
+                    };
                     if (res.error) {
                         res.resultCode = -1;
                     } else {
@@ -108,7 +123,13 @@ var serial = function(device) {
 };
 
 var serial_list_devices = function(options, callback){
-    chrome.serial.getDevices(callback);
+    chrome.serial.getDevices(function(res) {
+            if (chrome.runtime.lastError) {
+                console.error("[SERIAL]", chrome.runtime.lastError.message)
+                callback(res);
+            };
+            callback(res);
+    });
 };
 
 function test_serial() {
