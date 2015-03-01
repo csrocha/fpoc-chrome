@@ -38,11 +38,13 @@ oerpSession = function(server, session_id) {
     this.set_server_events = function(params, event_function_map, data, return_callback, callback, retry) {
         var self = this;
         var url = this.server + "/fp/spool?" + params;
+        var callback = callback;
 
         console.log("Create spool ", params);
 
         if (url in self.spools) {
             console.log("Repeated spool. Ignore it.");
+            if (callback) callback(self.spools[url]);
             return;
         }
 
@@ -58,6 +60,7 @@ oerpSession = function(server, session_id) {
             self.spools[url].close();
             delete self.spools[url];
             self.dispatchEvent({type: 'spool_error', 'event': ev});
+            self.dispatchEvent({type: 'spool_close', 'event': ev});
             if (retry) retry(event_function_map, callback);
         };
         receptor.onmessage = function(ev) {
@@ -85,12 +88,29 @@ oerpSession = function(server, session_id) {
     };
 
     //
+    // Remove printer spooler
+    //
+    this.del_printer = function(printer) {
+        var self = this;
+        var params = "session_id=" + self.session_id + "&printer_id=" + encodeURIComponent(printer.name);
+        var url = self.server + "/fp/spool?" + params;
+
+        if (url in self.spools) {
+            console.log("[SES] Remote spool for printer ", printer.name)
+            self.spools[url].close();
+            delete self.spools[url];
+            self.dispatchEvent({type: 'spool_close'});
+        }
+    }
+
+    //
     // Add printer and set server event for each one.
     //
     this.add_printer = function(printer, event_function_map, callback) {
         var self = this;
+        var callback = callback;
 
-        if (printer.spool in self.spools || !self.uid) {
+        if ((printer.spool && printer.spool.url in self.spools) || !self.uid) {
             callback();
             return;
         }
@@ -117,6 +137,7 @@ oerpSession = function(server, session_id) {
     //
     this.init_server_events = function(event_function_map, callback) {
         var self = this;
+        var callback = callback;
 
         var return_callback = function(mess, res) {
             if (mess == 'error') {
@@ -168,6 +189,7 @@ oerpSession = function(server, session_id) {
     this.rpc = function(url, params, callback) {
         var xhr = new XMLHttpRequest();
         var self=this;
+        var callback=callback;
         var args = "?jsonp=_&id="+this.id
         //if (self.session_id) {
         //    params.session_id = self.session_id;
@@ -217,7 +239,9 @@ oerpSession = function(server, session_id) {
     // Read list of databases on the server.
     //
     this.get_database_list = function(callback) {
-        this.rpc('/web/database/get_list', {}, callback);
+        var self=this;
+        var callback=callback;
+        self.rpc('/web/database/get_list', {}, callback);
     };
 
     //
@@ -225,8 +249,9 @@ oerpSession = function(server, session_id) {
     //
     this.get_session_info = function(callback) {
         var self=this;
+        var callback=callback;
         var old_uid = self.uid;
-        this.rpc('/web/session/get_session_info', {  }, function(mess, result){
+        self.rpc('/web/session/get_session_info', {  }, function(mess, result){
             if (mess == "done") {
                 self.db = result.db;
                 self.username = result.username;
@@ -255,6 +280,7 @@ oerpSession = function(server, session_id) {
     //
     this.authenticate = function(db, login, password, callback) {
         var self = this;
+        var callback=callback;
         var old_uid = self.uid;
         var params = { db: db, login: login, password: password, base_location: self.server };
         var _callback = function(mess, result) {
@@ -274,7 +300,7 @@ oerpSession = function(server, session_id) {
                 callback(mess, result && result.uid && result.uid != null);
             };
         };
-        this.rpc("/web/session/authenticate", params, _callback);
+        self.rpc("/web/session/authenticate", params, _callback);
     };
 
     //
@@ -282,6 +308,7 @@ oerpSession = function(server, session_id) {
     //
     this.logout = function(callback) {
         var self = this;
+        var callback=callback;
         var params = {};
         var _callback = function(mess, result) {
             self.username = null;
@@ -291,7 +318,7 @@ oerpSession = function(server, session_id) {
             self.dispatchEvent('logout');
             if (callback) { callback(mess); };
         }
-        this.rpc("/web/session/destroy", params, _callback);
+        self.rpc("/web/session/destroy", params, _callback);
     }
 
     //
@@ -299,13 +326,14 @@ oerpSession = function(server, session_id) {
     //
     this.send = function(value, callback) {
         var self = this;
+        var callback=callback;
         var _callback = function(mess, result) {
             self.dispatchEvent({type: 'send', 'message': mess, 'result': result});
             if (callback) {
                 callback(mess, result);
             };
         };
-        this.rpc("/fp/push", value, _callback);
+        self.rpc("/fp/push", value, _callback);
     };
 
     //
@@ -313,14 +341,14 @@ oerpSession = function(server, session_id) {
     //
     this.check = function(callback) {
         var self = this;
+        var callback=callback;
         var _callback = function(mess, result) {
             self.dispatchEvent({type: 'check', 'message': mess, 'result': result});
             if (callback) {
                 callback(mess, result);
             };
         };
-        this.rpc("/web/session/check", {}, _callback);
-
+        self.rpc("/web/session/check", {}, _callback);
     };
 
     //
@@ -328,6 +356,7 @@ oerpSession = function(server, session_id) {
     //
     this.init = function(callback) {
         var self = this;
+        var callback=callback;
         var _callback = callback || function(mess, obj) {
             if (mess != "logged") {
                 console.warn("Session is not open. Reason: ", mess);
@@ -336,8 +365,8 @@ oerpSession = function(server, session_id) {
             }
         };
         // Setup session information.
-        if (this.session_id) {
-            this.get_session_info(_callback);
+        if (self.session_id) {
+            self.get_session_info(_callback);
         } else {
             self.dispatchEvent('error');
             _callback("notlogin", this);
@@ -345,7 +374,9 @@ oerpSession = function(server, session_id) {
     };
 
     this._call = function(model, method, args, kwargs, callback) {
-        this.rpc("/web/dataset/call_kw", {
+        var self = this;
+        var callback=callback;
+        self.rpc("/web/dataset/call_kw", {
             model: model,
             method: method,
             args: args,
@@ -358,6 +389,7 @@ oerpSession = function(server, session_id) {
     //
     this.clean_printers = function(callback) {
         var self = this;
+        var callback=callback;
         if (self.printers) {
             async.each(self.printers, function(e) { e.close(); }, callback);
         } else
@@ -369,6 +401,7 @@ oerpSession = function(server, session_id) {
     //
     this.update = function(callback) {
         var self = this;
+        var callback=callback;
 
         console.debug('[SES] Updating printers.');
         // Take printers
@@ -397,6 +430,10 @@ oerpSession = function(server, session_id) {
             };
         };
 
+        var final_callback = function(res) {
+            callback();
+        }
+
         var publish_printers = function(printers) {
             self.printers = printers;
             var keys = takeKeys(printers);
@@ -404,7 +441,7 @@ oerpSession = function(server, session_id) {
                 async.each(keys, function(printer, __callback) {
                     console.debug("[SES] Printers to publish:", printer);
                     self.add_printer(printers[printer], printer_server_events, __callback);
-                }, callback);
+                }, final_callback);
             });
         }
 

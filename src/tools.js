@@ -70,6 +70,7 @@ var local_devices = {};
 
 var query_local_printers = function(callback, onchange) {
     var change = false;
+    var callback=callback;
 
     var inLocalPrinters = function(device, callback) {
         var inlp = false;
@@ -80,12 +81,17 @@ var query_local_printers = function(callback, onchange) {
     };
 
     var cleanPrinters = function(callback) {
+        var callback=callback;
         // Remove disconnected printers.
         async.eachSeries(takeKeys(local_printers),
                 function(pid, __callback__) {
                     local_printers[pid].get_status(function(result) {
                         if (typeof result == 'undefined' || ('error' in result  && result.error == 'disconnected')) {
+                            // Remove printer spool.
+                            if (session) { session.del_printer(local_printers[pid]); }
+                            // Close drivers.
                             local_printers[pid].close();
+                            // Remove printer from list.
                             delete local_printers[pid];
                             change=true;
                         };
@@ -98,6 +104,7 @@ var query_local_printers = function(callback, onchange) {
     };
 
     var declarePrinter = function(port, protocol, device, callback) {
+        var callback=callback;
         // Ignore declared devices.
         if (inLocalPrinters(device)) {
             callback();
@@ -155,16 +162,23 @@ var query_local_printers = function(callback, onchange) {
 
 
     var onUsbDeviceFound = function(protocol, vendorId, productId, devices, callback) {
-        async.each(devices, function(device, __callback__) {
-            declarePrinter('usb', protocol, device, __callback__);
-        },
-        function() {
-            console.debug("[PF] USB found end");
+        var callback=callback;
+        if (devices) {
+            async.each(devices, function(device, __callback__) {
+                declarePrinter('usb', protocol, device, __callback__);
+            },
+            function() {
+                console.debug("[PF] USB devices found end");
+                callback();
+            });
+        } else {
+            console.debug("[PF] no USB devices found");
             callback();
-        });
+        }
     }
 
     var onSerialDeviceFound = function(protocol, devices, callback) {
+        var callback=callback;
         async.each(devices, function(device, __callback__) {
             declarePrinter('serial', protocol, device,
                 function() { __callback__(); });

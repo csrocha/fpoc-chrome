@@ -12,9 +12,14 @@ var usb = function(device) {
         var self = this;
         var callback = callback;
         chrome.usb.openDevice(device, function(handle) {
+            if (chrome.runtime.lastError) {
+                console.error("[USB]", chrome.runtime.lastError.message)
+                return callback();
+            };
             self.handle = handle;
             chrome.usb.claimInterface(self.handle, self.interface, function() {
                 if (chrome.runtime.lastError) {
+                    console.error("[USB]", chrome.runtime.lastError.message)
                     return callback();
                 } else {
                     return callback(self);
@@ -26,30 +31,30 @@ var usb = function(device) {
     this.send = function(data, callback) {
         var self = this;
         var callback = callback;
-        try {
-            chrome.usb.bulkTransfer(self.handle,
-                {   'direction': 'out',
-                    'endpoint': 0x01,
-                    'data': data,
-                }, function(res) {
-                    callback(res);
-                });
-        }
-        catch(err) {
-            debugger;
-            console.error(err);
-        }
+        chrome.usb.bulkTransfer(self.handle,
+            {   'direction': 'out',
+                'endpoint': 0x01,
+                'data': data,
+            }, function(res) {
+                if (chrome.runtime.lastError) {
+                    console.error("[USB]", chrome.runtime.lastError.message)
+                }
+                callback(res);
+            });
     };
 
     this.receive = function(callback) {
         var self = this;
         var callback = callback;
-        try {
-            chrome.usb.bulkTransfer(self.handle,
-                {   'direction': 'in',
-                    'endpoint': 0x82,
-                    'length': 2048,
-                }, function(res) {
+        chrome.usb.bulkTransfer(self.handle,
+            {   'direction': 'in',
+                'endpoint': 0x82,
+                'length': 2048,
+            }, function(res) {
+                if (chrome.runtime.lastError) {
+                    console.error("[USB]", chrome.runtime.lastError.message)
+                    callback();
+                } else {
                     if (res.data.byteLength == 0) {
                         setTimeout(function() {
                             self.receive(callback);
@@ -57,17 +62,17 @@ var usb = function(device) {
                     } else {
                         callback(res);
                     }
-                });
-        }
-        catch(err) {
-            console.error(err);
-        }
+                }
+            });
     };
 
     this.alive = function(true_callback, false_callback) {
         var self = this;
         var callback = callback;
         chrome.usb.listInterfaces(self.handle, function(res) { // Check if device still alive.
+            if (chrome.runtime.lastError) {
+                    console.error("[USB]", chrome.runtime.lastError.message)
+            };
             if(res != null) { true_callback() } else { false_callback(); };
         });
     };
@@ -76,7 +81,15 @@ var usb = function(device) {
         var self = this;
         var callback = callback;
         chrome.usb.releaseInterface(self.handle, 0, function() {
-            chrome.usb.closeDevice(self.handle, callback);
+            if (chrome.runtime.lastError) {
+                    console.error("[USB]", chrome.runtime.lastError.message)
+            }
+            chrome.usb.closeDevice(self.handle, function() {
+            if (chrome.runtime.lastError) {
+                    console.error("[USB]", chrome.runtime.lastError.message)
+            };
+            callback();
+            });
         });
     };
 
@@ -86,7 +99,12 @@ var usb = function(device) {
 };
 
 var usb_list_devices = function(options, callback){
-    chrome.usb.getDevices(options, callback);
+    chrome.usb.getDevices(options, function(ret) {
+        if (chrome.runtime.lastError) {
+                console.error("[USB]", chrome.runtime.lastError.message)
+        };
+        callback(ret);
+    });
 };
 
 // vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
