@@ -37,9 +37,24 @@ var usb = function(device) {
                 'data': data,
             }, function(res) {
                 if (chrome.runtime.lastError) {
-                    console.error("[USB]", chrome.runtime.lastError.message)
+                  console.error("[USB]", chrome.runtime.lastError.message)
+                  if (chrome.runtime.lastError.message == "Transfer stalled") {
+                    chrome.usb.interruptTransfer(self.handle, {
+                      'direction': 'out',
+                      'endpoint': 0x01,
+                      'data': data,
+                      }, function(res) {
+                        if (chrome.runtime.lastError) {
+                          console.error("[USB]", chrome.runtime.lastError.message);
+                        };
+                        self.send(data, callback);
+                      });
+                  } else {
+                    callback(res);
+                  }
+                } else {
+                  callback(res);
                 }
-                callback(res);
             });
     };
 
