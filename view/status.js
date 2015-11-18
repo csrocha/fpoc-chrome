@@ -207,7 +207,7 @@ function load_databases(url, callback) {
         callback();
     };
     if (window.session) {
-        session.server = url;
+        session.server = url.replace(/\/$/i, "");
         while (database_input.firstChild) { database_input.removeChild(database_input.firstChild); }
         session.get_database_list(function(mess, databases) {
             if (mess == "done") {
