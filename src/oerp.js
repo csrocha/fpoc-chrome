@@ -431,7 +431,7 @@ oerpSession = function(server, session_id) {
         };
 
         var final_callback = function(res) {
-            callback();
+            if (callback) callback();
         }
 
         var publish_printers = function(printers) {
