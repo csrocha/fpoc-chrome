@@ -33,14 +33,18 @@
   "externally_connectable": {
      "matches": [
          "*://localhost:*/*",
+         "*://localhost:*/*/*",
+         "*://localhost:*/*/*/*",
          "*://serverhost:*/*"
      ]
   },
-  "content_security_policy": "default-src * 'unsafe-inline' 'unsafe-eval'",
+  "content_security_policy": "default-src * 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' http://localhost:8069/*; font-src 'self' http://localhost:8069/*; style-src 'self' http://localhost:8069/*; child-src 'none'; object-src 'none'; img-src 'self' http://localhost:8069/*",
   "permissions": [
      "*://*/*",
      "http://*:8069/*",
      "https://*/*",
+     "https://*/*/*",
+     "https://*/*/*/*",
      "storage",
      "usb",
      "serial",
