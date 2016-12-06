@@ -38,6 +38,8 @@
   },
   "permissions": [
      "*://*/*",
+     "http://*:8069/*",
+     "https://*/*",
      "storage",
      "usb",
      "serial",
