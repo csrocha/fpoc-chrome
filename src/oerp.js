@@ -242,8 +242,8 @@ oerpSession = function(server, session_id) {
         var self=this;
         var callback=callback;
         //self.rpc('/web/database/get_list', {}, callback);
-        db = ["preprod-teatriz-11-odoo9", "prod-teatriz"] 
-        callback("list", db);
+        dbs = ["teatriz-preprod-11-odoo9", "teatriz-prod"]
+        callback("done", dbs);
     };
 
     //
