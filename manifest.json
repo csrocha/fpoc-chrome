@@ -36,6 +36,7 @@
          "*://serverhost:*/*"
      ]
   },
+  "content_security_policy": "default-src * 'unsafe-inline' 'unsafe-eval'",
   "permissions": [
      "*://*/*",
      "http://*:8069/*",
