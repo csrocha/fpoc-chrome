@@ -241,7 +241,9 @@ oerpSession = function(server, session_id) {
     this.get_database_list = function(callback) {
         var self=this;
         var callback=callback;
-        self.rpc('/web/database/get_list', {}, callback);
+        //self.rpc('/web/database/get_list', {}, callback);
+        dbs = ["teatriz-preprod-11-odoo9", "teatriz-prod"]
+        callback("done", dbs);
     };
 
     //
