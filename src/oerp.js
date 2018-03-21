@@ -239,10 +239,30 @@ oerpSession = function(server, session_id) {
     // Read list of databases on the server.
     //
     this.get_database_list = function(callback) {
-        var self=this;
-        var callback=callback;
-        self.rpc('/web/database/get_list', {}, callback);
-    };
+        var self = this;
+        var callback = callback;
+        var databasesURL = self.server + '/web/database/selector';
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', databasesURL, true);
+        xhr.send(null);        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                if(xhr.status === 404) {                    
+                    self.rpc('/web/database/get_list', {}, callback);
+                }
+                else {         
+                    var el = document.createElement('html');
+                    el.innerHTML = xhr.responseText;
+                    nodes = el.getElementsByClassName("list-group-item");
+                    dbs = []
+                    for (node of nodes) {
+                        dbs.push(node.innerText.trim());
+                    }                
+                    callback("done", dbs);
+                }
+            }
+        }
+    }
 
     //
     // Get session information.
